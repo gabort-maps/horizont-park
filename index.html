@@ -1,0 +1,1749 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<title>Horizont Park</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: drafting-sheet page; 3D model band, then plan + unit schedule side by side, then data, meter demo and next steps */
+:root{
+  --bg:#eef1f0; --panel:#f9faf9; --ink:#17201d; --muted:#5d6964; --line:#c8d0cc; --accent:#1f5f8b;
+  --zS:#4f86c9; --zN:#c98636; --zC:#8a64b8; --zT:#3f9b78; --core:#b9c0bc;
+  --ok:#2e7d4f; --est:#a46d0c; --demo:#6b5a8e;
+  --display:"Archivo",system-ui,sans-serif; --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121715; --panel:#1a201e; --ink:#e2e8e5; --muted:#95a39c; --line:#2f3935; --accent:#6aa6d6;
+  --zS:#5a8fd0; --zN:#c4813a; --zC:#9877c6; --zT:#3f9a78; --core:#4a5550;
+  --ok:#5cc28a; --est:#e0aa40; --demo:#b3a2d6; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121715; --panel:#1a201e; --ink:#e2e8e5; --muted:#95a39c; --line:#2f3935; --accent:#6aa6d6;
+  --zS:#5a8fd0; --zN:#c4813a; --zC:#9877c6; --zT:#3f9a78; --core:#4a5550;
+  --ok:#5cc28a; --est:#e0aa40; --demo:#b3a2d6; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--sans);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+[hidden]{display:none!important}
+.wrap{max-width:1240px;margin:0 auto;padding-block:20px 40px;display:flex;flex-direction:column;gap:24px}
+h1,h2,h3{font-family:var(--display);font-stretch:85%;letter-spacing:-.01em;text-wrap:balance;margin:0}
+h1{font-size:clamp(28px,4vw,44px);font-weight:750;line-height:1.05}
+h2{font-size:22px;font-weight:700}
+h3{font-size:15px;font-weight:650;font-stretch:90%}
+p{margin:0}
+.lede{color:var(--muted);max-width:92ch;margin-top:8px;font-size:14px}
+.eyebrow{font:500 11px var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;border-bottom:2px solid var(--ink);padding-bottom:10px}
+.titleblock{font:12px/1.5 var(--mono);color:var(--muted);border:1px solid var(--line);padding:8px 12px;background:var(--panel);display:grid;grid-template-columns:auto auto;gap:2px 14px}
+.titleblock b{color:var(--ink);font-weight:500}
+.sec{display:flex;flex-direction:column;gap:14px}
+.sechead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.chip{display:inline-block;font:500 10px/1.6 var(--mono);letter-spacing:.05em;padding:0 6px;border-radius:3px;border:1px solid currentColor;white-space:nowrap;vertical-align:middle}
+.chip.v{color:var(--ok)}.chip.e{color:var(--est)}.chip.d{color:var(--demo);border-style:dashed}
+.legendchips{display:flex;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted);align-items:center}
+
+/* 3D band */
+.stage{position:relative;height:clamp(340px,52vw,520px);background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.stage canvas{display:block}
+.floors{position:absolute;left:12px;top:12px;display:flex;flex-direction:column;gap:4px;z-index:2}
+.floors button,.seg button{font:500 13px var(--mono);color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:5px 10px;cursor:pointer;text-align:left;min-width:44px}
+.floors button[aria-pressed="true"],.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.floors button:hover,.seg button:hover{border-color:var(--muted)}
+button:focus-visible,tr:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.zoom{position:absolute;left:12px;bottom:12px;display:flex;gap:4px;z-index:2}
+.zoom button{font:600 16px var(--mono);width:34px;height:34px;}.zoom button.rst{font-size:18px;margin-left:4px}
+.zoom button{color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:4px;cursor:pointer}
+.stagenote{position:absolute;right:12px;bottom:10px;font:11px var(--mono);color:var(--muted);text-align:right;background:var(--panel);padding:2px 6px;border-radius:3px}
+.floorcard{position:absolute;right:12px;top:12px;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:10px 12px;font-size:13px;max-width:250px;display:flex;flex-direction:column;gap:4px}
+.floorcard .big{font:700 22px var(--display);font-stretch:85%}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* plan + schedule */
+.planrow{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:20px;align-items:start}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;min-width:0}
+.seg{display:flex;gap:4px;flex-wrap:wrap}
+.plan svg{width:100%;height:auto;display:block}
+.plan .note{font-size:12px;color:var(--muted);margin-top:6px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{font:500 11px var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:6px 6px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;white-space:nowrap}
+#kozTable{font-size:12.5px}#kozTable td{white-space:normal}#kozTable td.mono{white-space:nowrap}
+td.num,th.num{text-align:right}
+tbody tr[data-u]{cursor:pointer}
+tbody tr[data-u]:hover{background:var(--bg)}
+tbody tr.sel{background:var(--bg);box-shadow:inset 3px 0 0 var(--accent)}
+tfoot td{font-weight:600;border-bottom:none}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.st{font:500 11px var(--mono);padding:1px 6px;border-radius:3px}
+.st.let{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
+.st.free{background:color-mix(in srgb,var(--muted) 14%,transparent);color:var(--muted)}
+
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.kpi .kv{font:700 26px/1.1 var(--display);font-stretch:85%;font-variant-numeric:tabular-nums}
+.kpi .l{font-size:12.5px;color:var(--muted)}
+.schedule td:first-child{font-weight:500}
+
+/* meter demo */
+.meter{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px;align-items:start}
+.chart{position:relative}
+.chart svg{width:100%;height:auto;display:block;overflow:visible}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--panel);font:12px var(--mono);padding:4px 8px;border-radius:4px;white-space:nowrap;transform:translate(-50%,-110%)}
+.bill{font-size:13.5px}
+.bill td{padding:5px 4px}
+.bill td:last-child{text-align:right}
+.bill tr.total td{font-weight:650;border-top:2px solid var(--ink);border-bottom:none}
+
+/* next steps */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.step{border-top:3px solid var(--ink);padding-top:10px;display:flex;flex-direction:column;gap:6px}
+.step p{color:var(--muted);font-size:14px}
+.foot{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:4px;max-width:90ch}
+
+/* tabs */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:-12px;flex-wrap:wrap}
+.tabs button{font:600 15px var(--display);font-stretch:90%;color:var(--muted);background:none;border:none;border-bottom:3px solid transparent;padding:8px 14px;cursor:pointer;display:flex;gap:6px;align-items:center}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+.crumb{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font:12.5px var(--mono);color:var(--muted);margin-top:-4px;margin-bottom:-10px}
+.crumb button{font:inherit;color:var(--accent);background:none;border:none;padding:0;cursor:pointer}
+.crumb button:hover{text-decoration:underline}
+.crumb .cur{color:var(--ink);font-weight:500}
+.crumb .sep{color:var(--line)}
+.ulinks{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:10px;font-size:12.5px;color:var(--muted)}
+.ulinks button{font:500 12.5px var(--sans);color:var(--accent);background:none;border:1px solid var(--line);border-radius:4px;padding:4px 9px;cursor:pointer}
+.ulinks button:hover{border-color:var(--accent)}
+.lnk{font:500 12px var(--sans);color:var(--accent);background:none;border:none;padding:0;cursor:pointer}.lnk:hover{text-decoration:underline}
+.tabpanel{display:flex;flex-direction:column;gap:26px}
+.tabpanel[hidden]{display:none!important}
+/* site */
+.stage.site{height:clamp(380px,58vw,620px);background:linear-gradient(#cfe0ee,#eef3f6 70%)}
+.views{position:absolute;left:12px;top:12px;display:flex;gap:4px;z-index:2;flex-wrap:wrap}
+.views button{font:500 12px var(--mono);color:#17201d;background:rgba(249,250,249,.92);border:1px solid #c8d0cc;border-radius:4px;padding:5px 9px;cursor:pointer}
+.stage.site .zoom button,.stage.site .stagenote{background:rgba(249,250,249,.92);color:#17201d;border-color:#c8d0cc}
+.toggles2{position:absolute;right:12px;top:12px;z-index:2;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.toggles2 .nbtoggle{position:static}
+.nbtoggle{position:absolute;right:12px;top:12px;z-index:2;display:flex;gap:6px;align-items:center;font:500 12px var(--sans);color:#17201d;background:rgba(249,250,249,.92);border:1px solid #c8d0cc;border-radius:4px;padding:5px 9px;cursor:pointer}
+.bldcard{position:absolute;right:12px;top:88px;z-index:2;width:min(300px,calc(100% - 24px));background:rgba(249,250,249,.97);color:#17201d;border:1px solid #c8d0cc;border-radius:6px;padding:12px 14px;font-size:13.5px;display:flex;flex-direction:column;gap:6px;box-shadow:0 4px 18px rgba(0,0,0,.12)}
+.bldcard h3{font-size:17px}.bldcard .n{color:#5d6964;font-size:12.5px}
+.bldcard .x{position:absolute;right:6px;top:4px;border:none;background:none;font-size:18px;cursor:pointer;color:#5d6964}
+.bldcard .go{align-self:flex-start;font:600 13px var(--sans);color:#f9faf9;background:#17201d;border:none;border-radius:4px;padding:6px 10px;cursor:pointer}
+.sitelbl.small{font-weight:500;font-size:10.5px;color:#5d6964}
+.sitelbl{font:600 12px var(--sans);color:#17201d;background:rgba(249,250,249,.9);border:1px solid #c8d0cc;border-radius:3px;padding:1px 6px;pointer-events:none;white-space:nowrap}
+.sitefacts{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.sitefacts>div{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px 14px;display:flex;flex-direction:column;gap:3px;align-items:flex-start}
+.sitefacts .kv,.kpi .kv{font:700 24px/1.1 var(--display);font-stretch:85%;font-variant-numeric:tabular-nums}
+.sitefacts .l{font-size:12.5px;color:var(--muted)}
+/* energy */
+.engnow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:10px;align-items:stretch}
+.engnow .t{border:1px solid var(--line);border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.engnow .t .kv{font:700 22px/1.1 var(--display);font-stretch:85%;font-variant-numeric:tabular-nums}
+.engnow .t .l{font-size:12px;color:var(--muted)}
+.engnow .t .d{font:500 11px var(--mono);margin-top:4px}
+.engnow .gauge{display:grid;grid-template-columns:72px 1fr;gap:10px;align-items:center}
+.engnow .gauge svg{width:72px;height:72px}
+.eng-src{--grid:#4a7fc0;--pv:#c58316;--batt:#3f9b78;--exp:#9fb3c4}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .eng-src{--pv:#b87d18;--exp:#6c8194}}
+:root[data-theme="dark"] .eng-src{--pv:#b87d18;--exp:#6c8194}
+.loss td:first-child{color:var(--est);font-weight:500}
+/* utilities */
+.schem svg{width:100%;height:auto;display:block;overflow:visible}
+.schem text{paint-order:stroke;stroke:var(--panel);stroke-width:3px;stroke-linejoin:round}
+.schem [data-m]{cursor:pointer}
+.schem [data-m]:hover circle,.schem [data-m]:hover rect{filter:brightness(1.15)}
+.schem .on circle,.schem .on rect{stroke:var(--ink)!important;stroke-width:3!important}
+.m-tav{fill:var(--ok)}.m-kezi{fill:var(--est)}.m-terv{fill:var(--panel);stroke:var(--demo);stroke-dasharray:3 2}.m-nincs{fill:var(--panel);stroke:#b03a2e}.m-src{fill:var(--line)}
+.st.terv{background:color-mix(in srgb,var(--demo) 14%,transparent);color:var(--demo)}
+.st.nincs{background:color-mix(in srgb,#c0392b 14%,transparent);color:#b03a2e}
+/* P&L */
+.rng{display:flex;flex-direction:column;gap:4px;font-size:13px;margin-top:12px}
+.rng b{color:var(--ink);font-weight:500}
+.rng input{width:100%;accent-color:var(--accent)}
+.bill td.neg{color:#b03a2e}.bill td.pos{color:var(--ok)}
+.bill tr.sub td{color:var(--muted);font-size:12.5px;padding-left:14px}
+.bill tr.hdr td{font:500 11px var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);padding-top:10px;border-bottom:1px solid var(--line)}
+/* tenants */
+.tri{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;align-items:start}
+.demobanner{border:1px dashed var(--demo);border-radius:6px;padding:10px 14px;font-size:13.5px;color:var(--ink);background:color-mix(in srgb,var(--demo) 8%,transparent)}
+.st.late{background:color-mix(in srgb,#c0392b 14%,transparent);color:#b03a2e}
+.st.warn{background:color-mix(in srgb,var(--est) 18%,transparent);color:var(--est)}
+.dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13.5px;margin-top:8px}
+.dl dt{color:var(--muted)}.dl dd{margin:0;font-variant-numeric:tabular-nums}
+.pay{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;margin-top:6px}
+.pay span{height:26px;border-radius:3px;font:500 10px/26px var(--mono);text-align:center;color:#fff}
+.pay .ok{background:var(--ok)}.pay .lt{background:var(--est)}.pay .op{background:#b03a2e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .st.late{color:#ef8a7f}}
+:root[data-theme="dark"] .st.late{color:#ef8a7f}
+
+
+/* dashboard (one screen, no scrolling) */
+body.dashmode .wrap{gap:14px;padding-block:14px}
+body.dashmode .head{padding-bottom:8px;align-items:center}
+body.dashmode .head .lede,body.dashmode .titleblock{display:none}
+body.dashmode h1{font-size:28px}
+body.dashmode .tabs{margin-bottom:0}
+body.dashmode .crumb{display:none}
+.dstamp{display:none;font:12px var(--mono);color:var(--muted)}
+body.dashmode .dstamp{display:block}
+#p-attekintes{gap:14px;--grid:#4a7fc0;--pv:#c58316;--batt:#3f9b78}
+.dkpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.kpi.dk{font:inherit;color:inherit;text-align:left;cursor:pointer;min-width:0}
+.kpi.dk:hover,.kpi.dk:focus-visible{border-color:var(--accent);outline:none}
+.dk .x{font-size:12.5px;color:var(--muted);line-height:1.3}
+.dk .x.a{color:var(--est)}.dk .x.g{color:var(--ok)}.dk .x.r{color:#b03a2e}
+.dgrid{display:grid;grid-template-columns:1.15fr 1.15fr 1fr;gap:14px}
+.dcard{display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.dh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.wr{display:grid;grid-template-columns:56px 1fr auto;gap:10px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
+.wd{font:500 12px var(--mono);color:var(--muted)}
+.wl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wr b{font:500 12.5px var(--mono);white-space:nowrap}
+.wf{font-size:12.5px;color:var(--muted);margin-top:auto;border-top:1px solid var(--line);padding-top:8px}
+.dchart svg{width:100%;height:auto;display:block}
+.dstats{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin-top:auto}
+.dstats div{display:flex;flex-direction:column;font-size:12px;color:var(--muted)}.dstats b{font:500 15px var(--mono);color:var(--ink)}
+.attn{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.attn button{width:100%;text-align:left;font:inherit;color:inherit;background:none;border:1px solid var(--line);border-left:4px solid var(--line);border-radius:5px;padding:6px 10px;cursor:pointer;display:flex;flex-direction:column;gap:1px}
+.attn button:hover,.attn button:focus-visible{border-color:var(--accent);outline:none}
+.attn .r{border-left-color:#b03a2e}.attn .a{border-left-color:var(--est)}.attn .i{border-left-color:var(--demo)}
+.attn b{font-size:13px;font-weight:600}.attn span{font-size:12px;color:var(--muted);line-height:1.3}
+@media (max-width:1000px){.dkpis{grid-template-columns:repeat(2,1fr)}.dgrid{grid-template-columns:1fr}}
+@media (max-width:860px){.planrow,.meter{grid-template-columns:1fr}.floorcard{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="head">
+    <div>
+      <p class="eyebrow">ACR Building · Daróczi út 1-3, Budapest XI.</p>
+      <h1>Horizont Park</h1>
+      <p class="lede">Ennyit tudunk felépíteni néhány fotóból és a meglévő alaprajzokból: a Park térbeli képe, az A épület szintenkénti modellje és alaprajza, egységekre bontás, bérlői nyilvántartás és a mérőtől a számláig tartó adatlánc. Minden szám jelölve, hogy ellenőrzött, becsült vagy csak demó.</p>
+    </div>
+    <span class="dstamp" id="dStamp">Állapot: 2026. okt. 15., 10:40 <span class="chip d">DEMÓ</span></span>
+    <div class="titleblock">
+      <span>Tárgy</span><b>Horizont Park: A, B, D épület és a telek</b>
+      <span>Alap</span><b>WING Tervező Rt. alaprajzok, fotók</b>
+      <span>Állapot</span><b>Demó, irányadó geometria</b>
+      <span>Dátum</span><b>2026. október 15.</b>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Nézetek">
+    <button type="button" role="tab" id="t-attekintes" data-tab="attekintes" aria-controls="p-attekintes">Áttekintés <span class="chip d">DEMÓ</span></button>
+    <button type="button" role="tab" id="t-park" data-tab="park" aria-controls="p-park">Park</button>
+    <button type="button" role="tab" id="t-epulet" data-tab="epulet" aria-controls="p-epulet">A épület</button>
+    <button type="button" role="tab" id="t-berlok" data-tab="berlok" aria-controls="p-berlok">Bérlők <span class="chip d">DEMÓ</span></button>
+    <button type="button" role="tab" id="t-energia" data-tab="energia" aria-controls="p-energia">Energia <span class="chip d">DEMÓ</span></button>
+    <button type="button" role="tab" id="t-kozmuvek" data-tab="kozmuvek" aria-controls="p-kozmuvek">Közművek <span class="chip d">DEMÓ</span></button>
+    <button type="button" role="tab" id="t-eredmeny" data-tab="eredmeny" aria-controls="p-eredmeny">Eredmény <span class="chip d">DEMÓ</span></button>
+    <button type="button" role="tab" id="t-penzugy" data-tab="penzugy" aria-controls="p-penzugy">Pénzügy <span class="chip d">DEMÓ</span></button>
+  </nav>
+  <nav class="crumb" id="crumb" aria-label="Útvonal"></nav>
+
+  <div class="tabpanel" id="p-attekintes" role="tabpanel" aria-labelledby="t-attekintes" hidden>
+    <div class="dkpis" id="dKpis"></div>
+    <div class="dgrid">
+      <section class="card dcard" aria-labelledby="dwT"><div class="dh"><h3 id="dwT">Következő 14 nap, pénz</h3><button type="button" class="lnk" data-go="penzugy">Cashflow →</button></div><div id="dWeek"></div></section>
+      <section class="card dcard" aria-labelledby="deT"><div class="dh"><h3 id="deT">Energia ma, kW</h3><button type="button" class="lnk" data-go="energia">Energia →</button></div><div class="dchart" id="dEng"></div><div class="dstats" id="dEngStats"></div></section>
+      <section class="card dcard" aria-labelledby="daT"><div class="dh"><h3 id="daT">Figyelni kell</h3><span class="chip d">DEMÓ</span></div><ul class="attn" id="dAttn"></ul></section>
+    </div>
+  </div>
+
+  <div class="tabpanel" id="p-park" role="tabpanel" aria-labelledby="t-park" hidden>
+    <section class="sec" aria-labelledby="hsite">
+      <div class="sechead">
+        <h2 id="hsite">A Park</h2>
+        <div class="legendchips"><span><span class="sw" style="background:#5f8fc0"></span>A épület</span><span><span class="sw" style="background:#9c4a36"></span>B épület</span><span><span class="sw" style="background:#e3dfd3;border:1px solid var(--line)"></span>D épület</span><span><span class="sw" style="background:#9aa09c"></span>gépészeti épület</span><span><span class="sw" style="background:#1f3a66"></span>napelem, tervezett</span></div>
+      </div>
+      <div class="stage site" id="siteStage">
+        <div class="zoom"><button type="button" id="sIn" aria-label="Nagyítás">+</button><button type="button" id="sOut" aria-label="Kicsinyítés">−</button><button type="button" id="sReset" class="rst" aria-label="Nézet visszaállítása" title="Nézet visszaállítása">⟲</button></div>
+        <div class="views" role="group" aria-label="Nézőpont">
+          <button type="button" data-v="se">Délkelet</button><button type="button" data-v="nw">Északnyugat</button><button type="button" data-v="top">Felülnézet</button>
+        </div>
+        <div class="toggles2"><label class="nbtoggle"><input type="checkbox" id="pvT" checked> Tervezett napelem, akkumulátor, carport <span class="chip d">DEMÓ</span></label><label class="nbtoggle"><input type="checkbox" id="nbT"> Szomszédos épületek</label></div>
+        <div class="bldcard" id="bldCard" hidden></div>
+        <p class="stagenote">Húzással forgatható, görgővel nagyítható. Kattints egy épületre. Magasságok irányadók.</p>
+      </div>
+      <div class="sitefacts">
+        <div><span class="kv mono">13 943 m²</span><span class="l">telekterület</span><span class="chip v">ELLENŐRZÖTT</span></div>
+        <div><span class="kv mono">≈16 000 m²</span><span class="l">bérbeadható a három épületben</span><span class="chip e">BECSLÉS</span></div>
+        <div><span class="kv mono">43%</span><span class="l">beépítettség</span><span class="chip v">ELLENŐRZÖTT</span></div>
+        <div><span class="kv mono">80–92</span><span class="l">parkolóhely, a források eltérnek</span><span class="chip e">NYITOTT</span></div>
+      </div>
+    </section>
+
+    <section class="sec" aria-labelledby="hpark">
+      <div class="sechead">
+        <h2 id="hpark">Parkolás <span class="chip d">DEMÓ</span></h2>
+        <p class="legendchips">Jövőbeli funkció. A kapurendszer (Skidata) ma nem működik; ezek a számok egy működő kapuból és a bérlői helykiosztásból jönnének.</p>
+      </div>
+      <div class="kpis" id="parkKpis"></div>
+      <div class="meter">
+        <div class="card"><h3>Autók a Parkon ma, óránként</h3><div class="chart" id="parkToday"></div><p class="note" style="font-size:12px;color:var(--muted);margin-top:6px">Kapuszámláló alapján. A sötét oszlop a mostani óra.</p></div>
+        <div class="card"><h3>Látogatói parkolási bevétel, 12 hónap, ezer Ft</h3><div class="chart" id="parkYear"></div><p class="note" style="font-size:12px;color:var(--muted);margin-top:6px">Október hónap közepéig (MTD). A bérlői helyek díja külön, euróban.</p></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="tabpanel" id="p-epulet" role="tabpanel" aria-labelledby="t-epulet">
+  <section class="sec" aria-labelledby="h3d">
+    <div class="sechead">
+      <h2 id="h3d">Az épület szintenként</h2>
+      <div class="legendchips"><span class="chip v">ELLENŐRZÖTT</span> rajzból vagy a bérbeadói listából <span class="chip e">BECSLÉS</span> számított <span class="chip d">DEMÓ</span> kitalált mintaadat</div>
+    </div>
+    <div class="stage" id="stage">
+      <div class="floors" role="group" aria-label="Szint választása" id="floorBtns"></div>
+      <div class="floorcard" id="floorCard" aria-live="polite"></div>
+      <div class="zoom"><button type="button" id="zIn" aria-label="Nagyítás">+</button><button type="button" id="zOut" aria-label="Kicsinyítés">−</button><button type="button" id="zReset" class="rst" aria-label="Nézet visszaállítása" title="Nézet visszaállítása">⟲</button></div>
+      <p class="stagenote">Húzással forgatható, görgővel vagy a + és − gombbal nagyítható. Homlokzatok a fotók alapján, egyszerűsítve.</p>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="hplan">
+    <div class="sechead">
+      <h2 id="hplan">Alaprajz és felosztás</h2>
+      <div class="seg" role="group" aria-label="Felosztás" id="splitBtns">
+        <button type="button" data-split="wing">Szárnyanként</button>
+        <button type="button" data-split="two">2 egység / szárny</button>
+        <button type="button" data-split="small">Kis egységek</button>
+      </div>
+    </div>
+    <div class="planrow">
+      <div class="card plan">
+        <div id="plan"></div>
+        <p class="note" id="planNote"></p>
+      </div>
+      <div class="card">
+        <h3 id="unitsTitle">Egységek</h3>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Egység</th><th class="num">Nettó m²</th><th class="num">€/m²/hó</th><th class="num">Bérleti díj/hó</th><th>Állapot</th></tr></thead>
+            <tbody id="units"></tbody>
+            <tfoot id="unitsFoot"></tfoot>
+          </table>
+        </div>
+        <div class="ulinks" id="unitLinks"></div>
+        <p class="note" style="font-size:12px;color:var(--muted);margin-top:8px">Nettó m²: a rajzról mért bruttó terület a bérbeadói ütemterv szárnyankénti nettójára arányosítva <span class="chip e">BECSLÉS</span>. Irányár a bérbeadói hirdetésből <span class="chip v">ELLENŐRZÖTT</span>; kis egységnél +10% felár <span class="chip d">DEMÓ</span>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="hdata">
+    <h2 id="hdata">Alapadatok</h2>
+    <div class="kpis">
+      <div class="kpi"><span class="kv mono">3 318 m²</span><span class="l">bérbeadható terület</span><span class="chip v" style="align-self:flex-start">ELLENŐRZÖTT</span></div>
+      <div class="kpi"><span class="kv mono">2 955 m²</span><span class="l">szabad, a terület 89%-a</span><span class="chip v" style="align-self:flex-start">ELLENŐRZÖTT</span></div>
+      <div class="kpi"><span class="kv mono">€8,9–11,9</span><span class="l">irányár / m² / hó</span><span class="chip v" style="align-self:flex-start">ELLENŐRZÖTT</span></div>
+      <div class="kpi"><span class="kv mono">€4,3–4,5</span><span class="l">üzemeltetési díj / m² / hó</span><span class="chip v" style="align-self:flex-start">ELLENŐRZÖTT</span></div>
+      <div class="kpi"><span class="kv mono">€26–35 e</span><span class="l">ki nem szedett bérleti díj havonta</span><span class="chip e" style="align-self:flex-start">BECSLÉS</span></div>
+    </div>
+    <div class="card tablewrap">
+      <table class="schedule">
+        <thead><tr><th>Szint</th><th class="num">Déli szárny m²</th><th class="num">Északi szárny m²</th><th class="num">Összesen</th><th>Állapot</th></tr></thead>
+        <tbody id="sched"></tbody>
+        <tfoot><tr><td>Összesen</td><td class="num mono">1 975</td><td class="num mono">1 343</td><td class="num mono">3 318</td><td></td></tr></tfoot>
+      </table>
+      <p class="note" style="font-size:12px;color:var(--muted);margin-top:8px">A bérbeadó ütemterve „bal” és „jobb” oldalt ír. A rajzokkal összevetve a bal oldal a déli, nagyobb szárny <span class="chip e">BECSLÉS</span>. A 4. emeleten az ütemterv a két oldalt fordítva adja meg: a 125 m² a déli, a 55 m² az északi penthouse-rész. Ezt a bérbeadóval tisztázni kell.</p>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="hmeter">
+    <div class="sechead">
+      <h2 id="hmeter">Mérőtől a számláig <span class="chip d">DEMÓ</span></h2>
+      <p class="legendchips">Kiválasztott egység: <b id="meterUnit" class="mono" style="color:var(--ink)"></b></p>
+    </div>
+    <div class="meter">
+      <div class="card">
+        <h3>Havi áramfogyasztás, kWh</h3>
+        <div class="chart" id="chart"></div>
+        <p class="note" style="font-size:12px;color:var(--muted);margin-top:6px">Kitalált mintaadat: 9 kWh/m²/hó alap, téli fűtés és nyári hűtés miatti csúccsal. Valós adat a mérőfelmérés és az almérők után.</p>
+      </div>
+      <div class="card">
+        <h3>Továbbszámlázás, utolsó hónap</h3>
+        <table class="bill" id="bill"></table>
+        <p class="note" style="font-size:12px;color:var(--muted);margin-top:8px">Ez a sor kerülne a bérlő számlájára. Tarifa és kezelési díj mintaértékek.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="hnext">
+    <h2 id="hnext">Mi kell ahhoz, hogy a demóból valós eszköz legyen</h2>
+    <div class="steps">
+      <div class="step"><h3>Bérleti lista</h3><p>Ki mit bérel, mekkora területet, milyen díjért és meddig. Ettől lesz valós a táblázat állapot- és díjoszlopa.</p></div>
+      <div class="step"><h3>Felmért területkimutatás</h3><p>Nettó m² helyiségenként, egy elfogadott mérési alapon. Ettől lesz a felosztás pontos, nem arányosított.</p></div>
+      <div class="step"><h3>Mérőfelmérés</h3><p>Hány mérő van, hol, milyen kimenettel, és hogyan futnak az elosztók. Ettől lesz valós a fogyasztás és a továbbszámlázás.</p></div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>Geometria: WING Tervező Rt. alaprajzai (pince–4. emelet) alapján újrarajzolva, irányadó pontossággal. Szintmagasság 3,83 m a rajzon szereplő +11,50 szintből számolva <span class="chip e">BECSLÉS</span>.</span>
+    <span>Homlokzatok: bérbeadói fotók és Google Earth nézetek alapján, egyszerűsítve. Területek és díjak: a bérbeadó iroda.hu hirdetése.</span>
+  </footer>
+  </div>
+
+  <div class="tabpanel" id="p-berlok" role="tabpanel" aria-labelledby="t-berlok" hidden>
+    <section class="sec" aria-labelledby="hten">
+      <div class="demobanner"><span class="chip d">DEMÓ</span> A bérlők nevei és minden szám kitalált mintaadat. Valós csak annyi, hogy az A épület 2. emeleti déli szárnya bérelt, és a B épületben van egy kiszállító raktárbérlő. A valós adatokat a bérleti lista és a könyvelés (Nagy Machinátor) adná.</div>
+      <div class="sechead">
+        <h2 id="hten">Bérlői nyilvántartás</h2>
+        <div class="seg" role="group" aria-label="Épület szűrő" id="tenFilter">
+          <button type="button" data-b="all" aria-pressed="true">Mind</button><button type="button" data-b="A">A</button><button type="button" data-b="B">B</button><button type="button" data-b="D">D</button>
+        </div>
+      </div>
+      <div class="kpis" id="tenKpis"></div>
+      <div>
+        <div class="card tablewrap">
+          <table id="tenTable">
+            <thead><tr><th>Bérlő</th><th>Egység</th><th class="num">m²</th><th class="num">Bérleti díj/hó</th><th class="num">Nyitott egyenleg</th><th>Lejárat</th><th>Állapot</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="tri">
+        <div class="card" id="tenDetail" aria-live="polite"></div>
+        <div class="card"><h3>Kintlevőség korosítva, €</h3><div class="chart" id="ageChart"></div><p class="note" style="font-size:12px;color:var(--muted);margin-top:6px">Napok a fizetési határidő óta. Ma ez a nézet nem létezik: nincs kintlevőség-kimutatás.</p></div>
+        <div class="card"><h3>Lejáró szerződések negyedévenként, m²</h3><div class="chart" id="expChart"></div><p class="note" style="font-size:12px;color:var(--muted);margin-top:6px">Ebből látszik előre, mikor szabadul fel terület.</p></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="tabpanel" id="p-energia" role="tabpanel" aria-labelledby="t-energia" hidden>
+    <section class="sec" aria-labelledby="heng">
+      <div class="demobanner"><span class="chip d">DEMÓ</span> Minden szám kitalált, de arányaiban reális mintaadat. A napelem (≈620 kWp) és az akkumulátor (500 kWh / 250 kW) tervezett rendszer, nem létezik. Valós adat a mérőfelmérés, az almérők és a hálózati csatlakozási szerződés után.</div>
+      <div class="sechead">
+        <h2 id="heng">Energia</h2>
+        <div class="seg" role="group" aria-label="Szint" id="engLevel">
+          <button type="button" data-l="P" aria-pressed="true">Park</button><button type="button" data-l="A">A épület</button><button type="button" data-l="B">B épület</button><button type="button" data-l="D">D épület</button><button type="button" data-l="K">Közös, külső</button>
+        </div>
+      </div>
+      <div class="kpis" id="engKpis"></div>
+      <div class="card">
+        <div class="sechead"><h3 id="engNowTitle">Most, 10:40</h3><span class="legendchips">Tervezett rendszer élő nézete <span class="chip d">DEMÓ</span></span></div>
+        <div class="engnow" id="engNow"></div>
+      </div>
+      <div class="meter">
+        <div class="card">
+          <div class="sechead"><h3 id="engSrcTitle">Havi energiaforrás, MWh</h3><div class="legendchips" id="engLegend"></div></div>
+          <div class="chart" id="engSrc"></div>
+          <p class="note" style="font-size:12px;color:var(--muted);margin-top:6px">Oszlop: bruttó fogyasztás forrás szerint. A nulla alatt a hálózatba visszatáplált többlet. Nettó = hálózatból vett − visszatáplált.</p>
+        </div>
+        <div class="card">
+          <h3>Akkumulátor töltöttsége ma, %</h3>
+          <div class="chart" id="engBatt"></div>
+          <p class="note" style="font-size:12px;color:var(--muted);margin-top:6px">500 kWh, 250 kW. Éjjel kisüt a bázisterhelésre, délelőtt a napelemről tölt. Egy ciklus naponta.</p>
+        </div>
+      </div>
+      <div class="card tablewrap" id="engTableCard"></div>
+    </section>
+  </div>
+
+  <div class="tabpanel" id="p-kozmuvek" role="tabpanel" aria-labelledby="t-kozmuvek" hidden>
+    <section class="sec" aria-labelledby="hkoz">
+      <div class="demobanner"><span class="chip d">DEMÓ</span> A mérők elhelyezése és állapota feltételezés: a valós listát a mérőfelmérés adja. Ami ellenőrzött: az ELMŰ 50082 állomás a szomszéd telken van, a leolvasás ma kézi és havi, és a számok hol jutnak el egy táblázatig, hol nem.</div>
+      <div class="sechead">
+        <h2 id="hkoz">Közművek: mérőtől a számláig</h2>
+        <div class="legendchips" id="kozLegend"></div>
+      </div>
+      <div class="planrow">
+        <div class="card">
+          <h3>Villamos energia, egyvonalas séma</h3>
+          <div class="schem" id="schemE"></div>
+          <h3 style="margin-top:14px">Víz és hő</h3>
+          <div class="schem" id="schemW"></div>
+          <p class="note" style="font-size:12px;color:var(--muted);margin-top:6px">Kattints egy mérőre. Szaggatott: tervezett elem. Piros karika: nincs mérő, becsléssel számlázva.</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+        <div class="card" id="kozDetail" aria-live="polite"></div>
+        <div class="card tablewrap" style="font-size:12.5px">
+        <h3>Utolsó hónap áramlása, október</h3>
+        <table id="kozFlow"></table>
+        <p class="note" style="font-size:12px;color:var(--muted);margin-top:8px">Főmérő = amit a szolgáltató számláz. Almérővel = mért fogyasztás a bérlő számláján. Becsléssel = m² vagy átalány alapján a bérlő számláján. Tulajdonos = közös és üres terület, nem számlázható tovább. Lefedettség = a főmérő hány százaléka jut mért alapon valakire.</p>
+      </div>
+        </div>
+      </div>
+      <div class="card tablewrap">
+        <h3>Mérőlista</h3>
+        <table id="kozTable"></table>
+      </div>
+    </section>
+  </div>
+
+  <div class="tabpanel" id="p-eredmeny" role="tabpanel" aria-labelledby="t-eredmeny" hidden>
+    <section class="sec" aria-labelledby="hpl">
+      <div class="demobanner"><span class="chip d">DEMÓ</span> Egyszerű havi eredménykimutatás, kitalált bérlőkkel és feltételezett költségekkel. Bérleti díj és üzemeltetési díj euróban, 400 Ft/€-val átváltva; minden más forintban. Hitel, értékcsökkenés és adó nincs benne. A valós számokat a bérleti lista és a könyvelés adja.<br><b>Megjegyzés:</b> a bérleti díj euróban, a közüzem és a költségek nagy része forintban folyik, ezért az eredmény árfolyamfüggő. Ennek részletezése és egy külön cashflow nézet később készül.</div>
+      <div class="sechead">
+        <h2 id="hpl">Eredmény, havi</h2>
+        <div class="seg" role="group" aria-label="Szint" id="plLevel">
+          <button type="button" data-l="P" aria-pressed="true">Park</button><button type="button" data-l="A">A épület</button><button type="button" data-l="B">B épület</button><button type="button" data-l="D">D épület</button>
+        </div>
+      </div>
+      <div class="kpis" id="plKpis"></div>
+      <div class="planrow">
+        <div class="card tablewrap"><h3 id="plTitle">Eredménykimutatás</h3><table class="bill" id="plTable"></table></div>
+        <div class="card">
+          <h3>Mi lenne, ha… <span class="chip d">DEMÓ</span></h3>
+          <p style="font-size:13px;color:var(--muted);margin-top:4px">Az üres terület egy részét kiadjuk ezen az áron. A költségoldal nem változik, csak a bérlő átveszi a maga m²-ének terhét.</p>
+          <label class="rng">Új bérleti díj <b id="wiRentV" class="mono"></b><input type="range" id="wiRent" min="1500" max="6000" step="100" value="3960"></label>
+          <label class="rng">Az üres terület ekkora része kiadva <b id="wiOccV" class="mono"></b><input type="range" id="wiOcc" min="0" max="100" step="5" value="50"></label>
+          <table class="bill" id="wiTable"></table>
+        </div>
+      </div>
+      <div class="card tablewrap" id="plRows"></div>
+    </section>
+  </div>
+
+  <div class="tabpanel" id="p-penzugy" role="tabpanel" aria-labelledby="t-penzugy" hidden>
+    <section class="sec" aria-labelledby="hfin">
+      <div class="demobanner"><span class="chip d">DEMÓ</span> Kitalált egyenlegek és fizetési szokások. A bérleti és üzemeltetési díj euróban érkezik, a közüzem és a költségek forintban mennek. A kérdés hetente ugyanaz: van-e elég forint az esedékes kifizetésekre, és ha nincs, mennyi eurót kell váltani és mikor. <b>Adatforrás ma:</b> kézi egyenleg-frissítés. <b>Cél:</b> banki kivonat import (CSV) vagy PSD2 számlainformációs kapcsolat, naponta. Jövőbeli funkció.</div>
+      <div class="sechead"><h2 id="hfin">Park eredmény, vezetői szinten</h2><button type="button" class="lnk" id="finToPL">Részletes eredménykimutatás →</button></div>
+      <div class="kpis" id="finKpis"></div>
+      <div class="card"><h3>Havi eredmény, 12 hónap, ezer Ft</h3><div class="chart" id="finRes"></div><p class="note" style="font-size:12px;color:var(--muted);margin-top:6px">Télen az energia viszi el az eredményt. A sötét oszlop október.</p></div>
+
+      <div class="sechead" style="margin-top:12px"><h2>Cashflow</h2>
+        <div class="seg" role="group" aria-label="Időszak" id="finPer"><button type="button" data-p="het" aria-pressed="true">Hét</button><button type="button" data-p="honap">Hónap</button><button type="button" data-p="negyedev">Negyedév</button></div></div>
+      <div class="kpis" id="cfKpis"></div>
+      <div class="meter" style="grid-template-columns:1fr 1fr">
+        <div class="card"><h3 id="cfChartT">Forintszámla egyenlege, ezer Ft</h3><div class="chart" id="cfChart"></div><p class="note" style="font-size:12px;color:var(--muted);margin-top:6px">Szaggatott vonal: tartalék. Ahol az egyenleg alá menne, ott váltás kell. A görbe a váltások utáni állapotot mutatja.</p></div>
+        <div class="card"><h3>Eurószámla egyenlege, ezer €</h3><div class="chart" id="cfChartE"></div><p class="note" style="font-size:12px;color:var(--muted);margin-top:6px">Ami nem kell forintra, az euróban marad.</p></div>
+      </div>
+      <div class="card tablewrap"><h3 id="cfTableT">Időszakonként</h3><table id="cfTable"></table>
+        <p class="note" style="font-size:12px;color:var(--muted);margin-top:8px">Bejövő euró: bérleti + üzemeltetési díj + bérlői parkolás, a bérlő fizetési szokásával eltolva (a nyilvántartás késéseiből). Bejövő forint: közüzem továbbszámlázás, látogatói parkolás. Kimenő forint: ELMŰ, víz, bérek és üzemeltetés, karbantartás, biztosítás, építményadó, könyvelés. A 60 napon túli nyitott tételek nincsenek beszámítva.</p></div>
+
+      <div class="sechead" style="margin-top:12px"><h2>Deviza</h2><span class="legendchips">Szabály: csak annyit váltunk, amennyi a tartalékhoz hiányzik, és csak akkor, amikor kell.</span></div>
+      <div class="planrow">
+        <div class="card">
+          <div style="font-size:13px">EUR/HUF árfolyam</div><div id="fxRateV" class="mono" style="font-size:26px;font-weight:500;margin-top:2px"></div><input type="hidden" id="fxRate" value="400">
+          <div id="fxFeed" style="font-size:12.5px;color:var(--muted);margin:4px 0 8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"></div>
+          <label class="rng">Forint tartalék, amit mindig tartani kell <b id="fxResV" class="mono"></b><input type="range" id="fxRes" min="0" max="20000" step="500" value="6000"></label>
+          <div id="fxReco" style="margin-top:14px"></div>
+        </div>
+        <div class="card"><h3>Váltási javaslatok</h3><table class="bill" id="fxTable"></table>
+          <h3 style="margin-top:14px">Árfolyam-érzékenység</h3><table class="bill" id="fxSens"></table></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+
+/* ======================= geometry (plan metres: X along the building from the south end, Y from the west/rear face toward the east/front) ======================= */
+const F_OUT=[[0,0],[45.6,0],[45.6,16.9],[32.6,16.9],[32.6,19.2],[16.9,19.2],[16.9,21],[0,21]];
+const P_OUT=[[0,0],[45.6,0],[45.6,16.9],[32.6,16.9],[32.6,13.8],[16.9,13.8],[16.9,21],[0,21]];
+const L3_OUT=[[0,0],[45.6,0],[45.6,15],[27.4,15],[27.4,13.6],[15.6,13.6],[15.6,19.3],[0,19.3]];
+const L4_BLOCK=[[10.1,1.7],[32.2,1.7],[32.2,13.4],[10.1,13.4]];
+const L4_SLAB=[[8.6,0.4],[33.7,0.4],[33.7,14.9],[8.6,14.9]];
+
+const SOUTH=[[0,0],[20,0],[20,13.8],[16.9,13.8],[16.9,21],[0,21]];
+const NORTH=[[27.6,0],[45.6,0],[45.6,16.9],[32.6,16.9],[32.6,13.8],[27.6,13.8]];
+const CENTER=[[16.9,13.8],[32.6,13.8],[32.6,19.2],[16.9,19.2]];
+const CORE=[
+  {n:'WC',p:[[20,0],[25.6,0],[25.6,5.6],[20,5.6]]},
+  {n:'Gépészet',p:[[25.6,0],[27.6,0],[27.6,3.7],[25.6,3.7]]},
+  {n:'Elektr.',p:[[25.6,3.7],[27.6,3.7],[27.6,5.6],[25.6,5.6]]},
+  {n:'Lépcsőház, liftek',p:[[20,5.6],[27.6,5.6],[27.6,13.8],[20,13.8]]}];
+const SOUTH3=[[0,0],[20,0],[20,13.6],[15.6,13.6],[15.6,19.3],[0,19.3]];
+const NORTH3=[[27.6,0],[45.6,0],[45.6,15],[27.6,15]];
+const CORE3=[{n:'WC, lépcsőház',p:[[20,0],[27.6,0],[27.6,13.6],[20,13.6]]}];
+const TERR3=[[15.6,13.6],[27.4,13.6],[27.4,15],[45.6,15],[45.6,16.9],[15.6,16.9]];
+const P4S=[[10.1,1.7],[22.3,1.7],[22.3,13.4],[10.1,13.4]], P4N=[[26.7,1.7],[32.2,1.7],[32.2,12.1],[26.7,12.1]];
+const CORE4=[{n:'Lépcső',p:[[22.3,1.7],[26.7,1.7],[26.7,13.4],[22.3,13.4]]}];
+const T4S=[[2.7,1.2],[22.3,1.2],[22.3,17.1],[2.7,17.1]], T4N=[[26.5,1.2],[38.1,1.2],[38.1,13.4],[26.5,13.4]];
+
+const FH=3.83;
+// schedule (lettable net m², landlord's list). S = south ("bal" on floors P–3), N = north
+const FLOORS=[
+ {k:'P',name:'Pince',base:-3.4,h:3.4,out:P_OUT,S:360,N:230,rent:8.9,rentNote:'e'},
+ {k:'F',name:'Földszint',base:0,h:FH,out:F_OUT,S:395,N:268,rent:9.9,rentNote:'v'},
+ {k:'1',name:'1. emelet',base:FH,h:FH,out:F_OUT,S:368,N:296,rent:9.9,rentNote:'v'},
+ {k:'2',name:'2. emelet',base:2*FH,h:FH,out:F_OUT,S:363,N:296,rent:9.9,rentNote:'v',letS:true},
+ {k:'3',name:'3. emelet',base:3*FH,h:FH,out:L3_OUT,S:364,N:198,rent:9.9,rentNote:'v'},
+ {k:'4',name:'4. emelet, penthouse',base:4*FH+0.35,h:3.0,out:L4_BLOCK,S:125,N:55,rent:11.9,rentNote:'v'}];
+
+/* splits (only floors F–2 are offered for re-cutting) */
+const SPLITS={
+ two:{S:[[[0,0],[10,0],[10,21],[0,21]],[[10,0],[20,0],[20,13.8],[16.9,13.8],[16.9,21],[10,21]]],
+      N:[[[27.6,0],[36.6,0],[36.6,16.9],[32.6,16.9],[32.6,13.8],[27.6,13.8]],[[36.6,0],[45.6,0],[45.6,16.9],[36.6,16.9]]]},
+ small:{S:[[[0,0],[10,0],[10,8.5],[0,8.5]],[[10,0],[20,0],[20,8.5],[10,8.5]],[[0,10.3],[8.5,10.3],[8.5,21],[0,21]],[[8.5,10.3],[20,10.3],[20,13.8],[16.9,13.8],[16.9,21],[8.5,21]]],
+        N:[[[27.6,0],[36.6,0],[36.6,8],[27.6,8]],[[36.6,0],[45.6,0],[45.6,8],[36.6,8]],[[32.6,10],[39.1,10],[39.1,16.9],[32.6,16.9]],[[39.1,10],[45.6,10],[45.6,16.9],[39.1,16.9]]],
+        corrS:[[0,8.5],[20,8.5],[20,10.3],[0,10.3]], corrN:[[27.6,8],[45.6,8],[45.6,10],[32.6,10],[32.6,13.8],[27.6,13.8]]}
+};
+
+const area=r=>Math.abs(r.reduce((s,p,i)=>{const q=r[(i+1)%r.length];return s+p[0]*q[1]-q[0]*p[1]},0)/2);
+const cen=r=>{let x=0,y=0,a=0;for(let i=0;i<r.length;i++){const p=r[i],q=r[(i+1)%r.length],c=p[0]*q[1]-q[0]*p[1];a+=c;x+=(p[0]+q[0])*c;y+=(p[1]+q[1])*c}a/=2;return [x/(6*a),y/(6*a)]};
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const fmt=(n,d=0)=>n.toLocaleString('hu-HU',{minimumFractionDigits:d,maximumFractionDigits:d});
+
+/* ======================= state ======================= */
+let cur='1', split='small', selU=null;
+try{const s=localStorage.getItem('acrA');if(s){const o=JSON.parse(s);if(o.cur)cur=o.cur;if(o.split)split=o.split}}catch(e){}
+const save=()=>{try{localStorage.setItem('acrA',JSON.stringify({cur,split}))}catch(e){}};
+
+/* units for a floor under the current split */
+function unitsFor(fk){
+  const f=FLOORS.find(x=>x.k===fk); const out=[];
+  if(fk==='4'){
+    out.push({id:'4-D',wing:'S',poly:P4S,net:f.S,label:'Penthouse dél (A-4/01)'});
+    out.push({id:'4-É',wing:'N',poly:P4N,net:f.N,label:'Penthouse észak (A-4/05)'});
+  } else {
+    const canSplit=['F','1','2'].includes(fk);
+    for(const w of ['S','N']){
+      const wingPoly = fk==='3'?(w==='S'?SOUTH3:NORTH3):(w==='S'?SOUTH:NORTH);
+      const let_= w==='S' && f.letS;
+      let polys=[wingPoly];
+      if(canSplit && split!=='wing' && !let_) polys=SPLITS[split][w];
+      const gross=polys.reduce((s,p)=>s+area(p),0), k=f[w]/gross; // scale gross drawing area to the landlord's net per wing
+      polys.forEach((p,i)=>out.push({id:`${fk}-${w==='S'?'D':'É'}${polys.length>1?i+1:''}`,wing:w,poly:p,net:area(p)*k,
+        label:(w==='S'?'Déli szárny':'Északi szárny')+(polys.length>1?` ${i+1}`:''),let:let_,small:polys.length>2}));
+    }
+  }
+  return out.map(u=>({...u,rent:f.rent*(u.small?1.1:1)}));
+}
+
+/* ======================= 3D ======================= */
+const stage=document.getElementById('stage');
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.shadowMap.enabled=true;
+stage.appendChild(renderer.domElement);
+const scene=new THREE.Scene();
+const cam=new THREE.PerspectiveCamera(34,1,0.5,800);
+const ctl=new OrbitControls(cam,renderer.domElement); ctl.enableDamping=true; ctl.zoomSpeed=0.8; ctl.maxPolarAngle=Math.PI*0.49; ctl.minDistance=25; ctl.maxDistance=180;
+ctl.target.set(22.8,6,10);
+scene.add(new THREE.HemisphereLight(0xffffff,0x9aa39e,1.15));
+const sun=new THREE.DirectionalLight(0xffffff,1.5); sun.position.set(-30,60,70); sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048); Object.assign(sun.shadow.camera,{left:-60,right:60,top:60,bottom:-60}); sun.target.position.set(22,0,10); scene.add(sun,sun.target);
+
+const groundMat=new THREE.MeshLambertMaterial({color:0xd8ddda,transparent:true,opacity:.92});
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(140,110),groundMat); ground.rotation.x=-Math.PI/2; ground.position.set(22.8,0,10); ground.receiveShadow=true; scene.add(ground);
+
+function shape(r){return new THREE.Shape(r.map(p=>new THREE.Vector2(p[0],p[1])))}
+function prism(r,base,h,mat){const g=new THREE.ExtrudeGeometry(shape(r),{depth:h,bevelEnabled:false});g.rotateX(Math.PI/2);g.translate(0,base+h,0);const m=new THREE.Mesh(g,mat);m.castShadow=true;m.receiveShadow=true;return m}
+function flat(r,y,mat){const g=new THREE.ShapeGeometry(shape(r));g.rotateX(Math.PI/2);g.translate(0,y,0);return new THREE.Mesh(g,mat)}
+const signed2=r=>r.reduce((s,p,i)=>{const q=r[(i+1)%r.length];return s+p[0]*q[1]-q[0]*p[1]},0);
+
+const M={
+  wall:new THREE.MeshLambertMaterial({color:0xe9ebe8}),
+  slab:new THREE.MeshLambertMaterial({color:0xcfd4d1}),
+  glass:new THREE.MeshLambertMaterial({color:0x40566a}),
+  curtain:new THREE.MeshLambertMaterial({color:0x5f87a3,transparent:true,opacity:.85}),
+  blue:new THREE.MeshLambertMaterial({color:0x6f9fc6}),
+  olive:new THREE.MeshLambertMaterial({color:0xa9a76a}),
+};
+const near=(a,b)=>Math.abs(a-b)<0.05;
+function edgeKind(a,b,fk){
+  if(fk==='4') return 'band';
+  if(near(a[1],16.9)&&near(b[1],16.9)&&Math.min(a[0],b[0])>=32.5) return 'blue';   // north wing front
+  if(near(a[0],45.6)&&near(b[0],45.6)) return 'olive';                               // north end
+  if(near(a[1],19.2)&&near(b[1],19.2)) return 'curtain';                             // glazed entrance box
+  return 'band';
+}
+function facade(group,r,base,h,fk){
+  const s=Math.sign(signed2(r));
+  for(let i=0;i<r.length;i++){
+    const a=r[i],b=r[(i+1)%r.length],dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy); if(L<1) continue;
+    const nx=s*dy/L, ny=-s*dx/L, mx=(a[0]+b[0])/2+nx*0.06, my=(a[1]+b[1])/2+ny*0.06, ang=-Math.atan2(dy,dx);
+    const kind= fk==='P'? 'none' : edgeKind(a,b,fk);
+    const add=(w,hh,y,mat,off=0)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,hh,0.12),mat);m.position.set(mx+dx/L*off,y,my+dy/L*off);m.rotation.y=ang;group.add(m)};
+    if(kind==='band') add(L-0.8,1.55,base+0.95+0.78,M.glass);
+    else if(kind==='curtain') add(L-0.2,h-0.25,base+h/2,M.curtain);
+    else if(kind==='blue'||kind==='olive'){
+      add(L-0.1,h-0.05,base+h/2,kind==='blue'?M.blue:M.olive);
+      const n=Math.max(2,Math.round(L/4.3));
+      for(let j=0;j<n;j++){const off=-L/2+(j+0.5)*L/n;const m=new THREE.Mesh(new THREE.BoxGeometry(1.5,1.6,0.14),M.glass);m.position.set(mx+nx*0.03+dx/L*off,base+1.75,my+ny*0.03+dy/L*off);m.rotation.y=ang;group.add(m)}
+    }
+  }
+}
+const floorGroups={};
+for(const f of FLOORS){
+  const g=new THREE.Group();
+  g.add(prism(f.out,f.base,f.h-0.3,M.wall));
+  g.add(prism(f.out,f.base+f.h-0.3,0.3,M.slab));
+  facade(g,f.out,f.base,f.h,f.k);
+  if(f.k==='3') g.add(prism(F_OUT,f.base+f.h,0.35,M.slab));                // overhanging roof slab over the 3rd floor terraces
+  if(f.k==='4') g.add(prism(L4_SLAB,f.base+f.h,0.35,M.slab));
+  scene.add(g); floorGroups[f.k]=g;
+}
+// zone overlay for the selected floor
+const overlay=new THREE.Group(); scene.add(overlay);
+const shrink=(r,d)=>{const c=cen(r);return r.map(p=>{const vx=p[0]-c[0],vy=p[1]-c[1],L=Math.hypot(vx,vy)||1;return [p[0]-vx/L*d,p[1]-vy/L*d]})};
+function draw3D(){
+  const fi=FLOORS.findIndex(f=>f.k===cur), f=FLOORS[fi];
+  FLOORS.forEach((x,i)=>{
+    const g=floorGroups[x.k]; const above=i>fi;
+    g.traverse(o=>{if(!o.isMesh) return;
+      if(!o.userData.m0) o.userData.m0=o.material;
+      if(above){ if(!o.userData.ghost){const gm=o.userData.m0.clone();gm.transparent=true;gm.opacity=0.12;gm.depthWrite=false;o.userData.ghost=gm} o.material=o.userData.ghost; }
+      else o.material=o.userData.m0;
+      o.castShadow=!above});
+    g.visible=true;
+  });
+  // clear and rebuild overlay
+  while(overlay.children.length) overlay.remove(overlay.children[0]);
+  const y=f.base+f.h+0.03;
+  const col={S:css('--zS'),N:css('--zN')};
+  if(f.k==='3') overlay.add(flat(TERR3,y,new THREE.MeshBasicMaterial({color:css('--zT'),side:THREE.DoubleSide})));
+  if(f.k==='4'){overlay.add(flat(T4S,y-0.01,new THREE.MeshBasicMaterial({color:css('--zT'),side:THREE.DoubleSide})));overlay.add(flat(T4N,y-0.01,new THREE.MeshBasicMaterial({color:css('--zT'),side:THREE.DoubleSide})))}
+  if(['F','1','2'].includes(f.k)) overlay.add(flat(shrink(CENTER,0.2),y,new THREE.MeshBasicMaterial({color:css('--zC'),side:THREE.DoubleSide})));
+  for(const u of unitsFor(cur)){
+    const m=new THREE.MeshBasicMaterial({color:col[u.wing],side:THREE.DoubleSide,transparent:true,opacity:u.id===selU?1:0.78});
+    overlay.add(flat(shrink(u.poly,0.25),y+0.01,m));
+  }
+  const coreSet=f.k==='3'?CORE3:f.k==='4'?CORE4:CORE;
+  for(const c of coreSet) overlay.add(flat(shrink(c.p,0.15),y+0.005,new THREE.MeshBasicMaterial({color:css('--core'),side:THREE.DoubleSide})));
+}
+function resize(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h);cam.aspect=w/h;cam.updateProjectionMatrix()}
+addEventListener('resize',resize);
+cam.position.set(-18,34,62);
+const dolly=k=>{const v=cam.position.clone().sub(ctl.target);const L=Math.min(180,Math.max(25,v.length()*k));cam.position.copy(ctl.target).add(v.setLength(L))};
+document.getElementById('zIn').addEventListener('click',()=>dolly(0.8));document.getElementById('zOut').addEventListener('click',()=>dolly(1.25));
+const HOME_T=ctl.target.clone();document.getElementById('zReset').addEventListener('click',()=>{cam.position.set(-18,34,62);ctl.target.copy(HOME_T);ctl.update()});
+
+/* ======================= floor buttons + card ======================= */
+const floorBtns=document.getElementById('floorBtns');
+[...FLOORS].reverse().forEach(f=>{const b=document.createElement('button');b.type='button';b.dataset.f=f.k;b.textContent=f.k==='P'?'P':f.k==='F'?'F':f.k;b.title=f.name;b.setAttribute('aria-label',f.name);b.addEventListener('click',()=>setFloor(f.k));floorBtns.appendChild(b)});
+function card(){
+  const f=FLOORS.find(x=>x.k===cur);
+  const lvl=f.k==='P'?'−3,40':(f.base>=0?'+':'')+fmt(f.base,2);
+  document.getElementById('floorCard').innerHTML=`<span class="eyebrow" style="margin:0">Kiválasztott szint</span><span class="big">${f.name}</span>
+  <span class="mono">Padlószint ≈ ${lvl} m <span class="chip e">BECSLÉS</span></span>
+  <span class="mono">Déli ${fmt(f.S)} m² · Északi ${fmt(f.N)} m² <span class="chip v">ELLENŐRZÖTT</span></span>
+  <span>${f.letS?'Déli szárny bérelt, északi szabad':'Teljes szint szabad'} <span class="chip v">ELLENŐRZÖTT</span></span>`;
+}
+
+/* ======================= plan SVG ======================= */
+const planEl=document.getElementById('plan');
+const P2=r=>r.map(p=>p.join(',')).join(' ');
+function drawPlan(){
+  const f=FLOORS.find(x=>x.k===cur), units=unitsFor(cur);
+  const outlines = f.k==='4'?F_OUT:f.out;
+  let s=`<svg viewBox="-4 -5 53.6 33" role="img" aria-label="${f.name} alaprajza" font-family="IBM Plex Mono, monospace">
+  <defs><pattern id="hatch" width="0.6" height="0.6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="0.6" stroke="var(--muted)" stroke-width="0.12"/></pattern></defs>
+  <text x="22.8" y="-2.6" text-anchor="middle" font-size="0.95" fill="var(--muted)">NYUGAT · hátsó homlokzat, Alsóhegy u.</text>
+  <text x="22.8" y="26.4" text-anchor="middle" font-size="0.95" fill="var(--muted)">KELET · főbejárat, parkoló</text>
+  <text x="-2.2" y="10.5" text-anchor="middle" font-size="0.95" fill="var(--muted)" transform="rotate(-90 -2.2 10.5)">DÉL</text>
+  <text x="48" y="10.5" text-anchor="middle" font-size="0.95" fill="var(--muted)" transform="rotate(90 48 10.5)">ÉSZAK</text>
+  <polygon points="${P2(outlines)}" fill="var(--panel)" stroke="var(--ink)" stroke-width="${f.k==='4'?0.12:0.35}" ${f.k==='4'?'stroke-dasharray="0.6 0.4"':''}/>`;
+  if(f.k==='3') s+=`<polygon points="${P2(TERR3)}" fill="var(--zT)" fill-opacity=".35" stroke="var(--zT)" stroke-width="0.1"/><text x="36" y="16.2" font-size="0.8" fill="var(--ink)" text-anchor="middle">terasz</text>`;
+  if(f.k==='4') s+=`<polygon points="${P2(T4S)}" fill="var(--zT)" fill-opacity=".3" stroke="var(--zT)" stroke-width="0.1"/><polygon points="${P2(T4N)}" fill="var(--zT)" fill-opacity=".3" stroke="var(--zT)" stroke-width="0.1"/>
+     <text x="6.4" y="16" font-size="0.8" fill="var(--ink)" text-anchor="middle">terasz 77,77 m²</text><text x="35.3" y="12.6" font-size="0.8" fill="var(--ink)" text-anchor="middle">terasz 33,95 m²</text>`;
+  if(['F','1','2'].includes(f.k)){const c=cen(CENTER);s+=`<polygon points="${P2(CENTER)}" fill="var(--zC)" fill-opacity=".25" stroke="var(--zC)" stroke-width="0.1"/><text x="${c[0]}" y="${c[1]+0.35}" font-size="0.85" text-anchor="middle" fill="var(--ink)">${f.k==='F'?'előcsarnok, bejárat':'légtér, kis helyiség'}</text>`}
+  if(['F','1','2'].includes(f.k)&&split==='small'){s+=`<polygon points="${P2(SPLITS.small.corrN)}" fill="none" stroke="var(--muted)" stroke-width="0.08" stroke-dasharray="0.4 0.3"/>`; if(!f.letS) s+=`<polygon points="${P2(SPLITS.small.corrS)}" fill="none" stroke="var(--muted)" stroke-width="0.08" stroke-dasharray="0.4 0.3"/>`}
+  for(const u of units){
+    const c=cen(u.poly), on=u.id===selU, col=u.wing==='S'?'var(--zS)':'var(--zN)';
+    s+=`<g data-u="${u.id}" style="cursor:pointer" tabindex="0" role="button" aria-label="${u.label}, ${fmt(u.net)} négyzetméter">
+      <polygon points="${P2(shrink(u.poly,0.18))}" fill="${col}" fill-opacity="${on?0.55:0.28}" stroke="${col}" stroke-width="${on?0.28:0.12}"/>
+      <text x="${c[0]}" y="${c[1]-0.2}" font-size="1.05" font-weight="500" text-anchor="middle" fill="var(--ink)">${u.id}</text>
+      <text x="${c[0]}" y="${c[1]+1.1}" font-size="0.85" text-anchor="middle" fill="var(--muted)">≈${fmt(u.net)} m²${u.let?' · bérelt':''}</text></g>`;
+  }
+  const coreSet=f.k==='3'?CORE3:f.k==='4'?CORE4:CORE;
+  for(const c of coreSet){const m=cen(c.p);s+=`<polygon points="${P2(c.p)}" fill="url(#hatch)" stroke="var(--muted)" stroke-width="0.1"/><text x="${m[0]}" y="${m[1]+0.3}" font-size="${c.p===CORE[1].p||c.p===CORE[2].p?0.55:0.75}" text-anchor="middle" fill="var(--ink)" ${c.n.length>10?`transform="rotate(-90 ${m[0]} ${m[1]})"`:''}>${c.n}</text>`}
+  // column grid (5.4 m) as faint crosses, scale bar, north arrow
+  s+=`<g stroke="var(--ink)" stroke-width="0.12"><line x1="0" y1="24" x2="10" y2="24"/><line x1="0" y1="23.6" x2="0" y2="24.4"/><line x1="5" y1="23.7" x2="5" y2="24.3"/><line x1="10" y1="23.6" x2="10" y2="24.4"/></g>
+  <text x="0" y="25.4" font-size="0.75" fill="var(--muted)">0</text><text x="10" y="25.4" font-size="0.75" fill="var(--muted)" text-anchor="middle">10 m</text>
+  <g transform="translate(44 23.2)"><circle r="1.4" fill="none" stroke="var(--muted)" stroke-width="0.08"/><path d="M1.2 -0.2 L-1 0 L1.2 0.2 Z" fill="var(--ink)" transform="rotate(180)"/><text x="2.6" y="0.3" font-size="0.75" fill="var(--muted)">É</text></g></svg>`;
+  planEl.innerHTML=s;
+  planEl.querySelectorAll('[data-u]').forEach(g=>{g.addEventListener('click',()=>selectUnit(g.dataset.u));g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectUnit(g.dataset.u)}})});
+  document.getElementById('planNote').textContent= ['F','1','2'].includes(cur)
+    ? (split==='small'?'Kis egységek: folyosó a szárny közepén, egységek a pillérkiosztáshoz (≈5,4 m) igazítva. A 2. emeleti déli szárny bérelt, ezért egyben marad.':'Kattints egy egységre a részletekért.')
+    : cur==='4' ? 'A penthouse két része a 4. emeleti tetőterv alapján; a szaggatott vonal az alatta lévő szint körvonala.'
+    : 'A felosztás-demó a földszinten és az 1–2. emeleten érhető el.';
+}
+
+/* ======================= units table ======================= */
+function drawUnits(){
+  const units=unitsFor(cur), f=FLOORS.find(x=>x.k===cur);
+  document.getElementById('unitsTitle').textContent=`Egységek, ${f.name.toLowerCase()}`;
+  const rows=units.map(u=>`<tr data-u="${u.id}" tabindex="0" class="${u.id===selU?'sel':''}"><td><span class="sw" style="background:var(${u.wing==='S'?'--zS':'--zN'})"></span>${u.id}</td>
+    <td class="num">${fmt(u.net)}</td><td class="num">${fmt(u.rent,1)}</td><td class="num">€${fmt(u.net*u.rent)}</td>
+    <td><span class="st ${u.let?'let':'free'}">${u.let?'bérelt':'szabad'}</span></td></tr>`).join('');
+  document.getElementById('units').innerHTML=rows;
+  const tn=units.reduce((s,u)=>s+u.net,0), tr=units.reduce((s,u)=>s+u.net*u.rent,0);
+  document.getElementById('unitsFoot').innerHTML=`<tr><td>Szint összesen</td><td class="num">${fmt(tn)}</td><td></td><td class="num">€${fmt(tr)}</td><td></td></tr>`;
+  document.querySelectorAll('#units tr').forEach(tr=>{tr.addEventListener('click',()=>selectUnit(tr.dataset.u));tr.addEventListener('keydown',e=>{if(e.key==='Enter'){selectUnit(tr.dataset.u)}})});
+  const su=units.find(u=>u.id===selU);
+  document.getElementById('unitLinks').innerHTML=su?`<span>Kiválasztva: <b class="mono" style="color:var(--ink)">${su.id}</b></span><button type="button" data-go="tenant">${su.let?'Bérlő adatai':'Szabad egység'} →</button><button type="button" data-go="meter">Mérő és számla →</button>`:'';
+  document.querySelectorAll('#unitLinks button').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.go==='tenant')window.acrGo?.tenantForUnit(selU);else window.acrGo?.meter()}));
+}
+
+/* ======================= schedule ======================= */
+document.getElementById('sched').innerHTML=FLOORS.map(f=>`<tr><td>${f.name}</td><td class="num mono">${fmt(f.S)}</td><td class="num mono">${fmt(f.N)}</td><td class="num mono">${fmt(f.S+f.N)}</td><td>${f.letS?'<span class="st let">déli szárny bérelt</span>':'<span class="st free">szabad</span>'}</td></tr>`).join('');
+
+/* ======================= meter demo ======================= */
+const MON=['nov','dec','jan','feb','márc','ápr','máj','jún','júl','aug','szept','okt'];
+const SEAS_BY=[1.1,1.3,1.35,1.3,1.1,0.95,0.9,1.05,1.25,1.2,0.95,0.95]; // nov..okt
+function series(u){let h=0;for(const ch of u.id)h=(h*31+ch.charCodeAt(0))%9973;return SEAS_BY.map((s,i)=>Math.round(u.net*9*s*(0.93+((h*(i+3))%17)/120)))}
+const chartEl=document.getElementById('chart');
+function drawMeter(){
+  const u=unitsFor(cur).find(x=>x.id===selU)||unitsFor(cur)[0];
+  document.getElementById('meterUnit').textContent=`${u.id} · ${u.label} · ≈${fmt(u.net)} m²`;
+  const d=series(u), W=640,H=240,L=46,R=8,T=12,B=28, max=Math.ceil(Math.max(...d)*1.12/400)*400;
+  const bw=(W-L-R)/12, y=v=>T+(H-T-B)*(1-v/max);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Havi áramfogyasztás, kWh, demó adat">`;
+  for(let t=0;t<=4;t++){const v=max*t/4;s+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L-6}" y="${y(v)+4}" font-size="11" text-anchor="end" fill="var(--muted)" font-family="IBM Plex Mono">${fmt(v)}</text>`}
+  d.forEach((v,i)=>{const x=L+i*bw+3,h=y(0)-y(v),w=bw-6;
+    s+=`<path d="M${x} ${y(0)} V${y(v)+4} Q${x} ${y(v)} ${x+4} ${y(v)} H${x+w-4} Q${x+w} ${y(v)} ${x+w} ${y(v)+4} V${y(0)} Z" fill="var(${u.wing==='S'?'--zS':'--zN'})" ${i===11?'':'fill-opacity=".72"'}/>
+    <rect x="${L+i*bw}" y="${T}" width="${bw}" height="${H-T-B}" fill="transparent" data-i="${i}"/>
+    <text x="${x+w/2}" y="${H-10}" font-size="11" text-anchor="middle" fill="var(--muted)" font-family="IBM Plex Sans">${MON[i]}</text>`});
+  s+=`<text x="${L+11*bw+bw/2}" y="${y(d[11])-6}" font-size="11" text-anchor="middle" fill="var(--ink)" font-family="IBM Plex Mono">${fmt(d[11])}</text></svg><div class="tip" hidden></div>`;
+  chartEl.innerHTML=s;
+  const tip=chartEl.querySelector('.tip'), svg=chartEl.querySelector('svg');
+  svg.querySelectorAll('rect[data-i]').forEach(r=>{
+    r.addEventListener('pointerenter',e=>{const i=+r.dataset.i,b=svg.getBoundingClientRect(),k=b.width/W;tip.hidden=false;tip.textContent=`${MON[i]}: ${fmt(d[i])} kWh`;tip.style.left=(L+i*bw+bw/2)*k+'px';tip.style.top=y(d[i])*k+'px'});
+    r.addEventListener('pointerleave',()=>tip.hidden=true)});
+  const kwh=d[11], tariff=72, base=kwh*tariff, fee=base*0.05;
+  document.getElementById('bill').innerHTML=`<tr><td>Mért fogyasztás, október</td><td class="mono">${fmt(kwh)} kWh</td></tr>
+   <tr><td>Áramdíj, 72 Ft/kWh</td><td class="mono">${fmt(base)} Ft</td></tr>
+   <tr><td>Kezelési díj, 5%</td><td class="mono">${fmt(fee)} Ft</td></tr>
+   <tr class="total"><td>Továbbszámlázva</td><td class="mono">${fmt(base+fee)} Ft</td></tr>`;
+}
+
+/* ======================= wiring ======================= */
+function announce(){dispatchEvent(new CustomEvent('acr:a',{detail:{cur,selU}}))}
+function selectUnit(id){selU=id;drawPlan();drawUnits();drawMeter();draw3D();announce()}
+function setFloor(k){cur=k;const us=unitsFor(cur);selU=(us.find(u=>!u.let)||us[0]).id;save();refresh()}
+function setSplit(sp){split=sp;save();const us=unitsFor(cur);if(!us.find(u=>u.id===selU))selU=(us.find(u=>!u.let)||us[0]).id;refresh()}
+document.querySelectorAll('#splitBtns button').forEach(b=>b.addEventListener('click',()=>setSplit(b.dataset.split)));
+function refresh(){
+  floorBtns.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.f===cur)));
+  document.querySelectorAll('#splitBtns button').forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.split===split));b.disabled=!['F','1','2'].includes(cur);b.style.opacity=b.disabled?.45:1});
+  card();drawPlan();drawUnits();drawMeter();draw3D();announce();
+}
+function paint(){groundMat.color.set(css('--line'));draw3D()}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{paint();drawPlan();drawMeter()});
+new MutationObserver(()=>{paint();drawPlan();drawMeter()}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+window.acrA={setFloor,selectUnit,unitsFor,FLOORS,get cur(){return cur},get selU(){return selU}};
+resize();
+{const us=unitsFor(cur);selU=(us.find(u=>!u.let)||us[0]).id}
+refresh(); paint();
+(function loop(){ctl.update();if(stage.clientWidth)renderer.render(scene,cam);requestAnimationFrame(loop)})();
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {CSS2DRenderer,CSS2DObject} from 'three/addons/renderers/CSS2DRenderer.js';
+
+const fmt=(n,d=0)=>n.toLocaleString('hu-HU',{minimumFractionDigits:d,maximumFractionDigits:d});
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+function bars(el,labels,vals,unit,color){
+  const W=520,H=210,L=56,R=8,T=14,B=28,max=Math.max(1,...vals),step=Math.pow(10,Math.floor(Math.log10(max)));const top=Math.ceil(max*1.15/step)*step;
+  const bw=(W-L-R)/labels.length,y=v=>T+(H-T-B)*(1-v/top);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img">`;
+  for(let i=0;i<=4;i++){const v=top*i/4;s+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L-6}" y="${y(v)+4}" font-size="11" text-anchor="end" fill="var(--muted)" font-family="IBM Plex Mono">${fmt(v)}</text>`}
+  vals.forEach((v,i)=>{const x=L+i*bw+bw*0.18,w=bw*0.64,yy=y(v),col=Array.isArray(color)?color[i]:color;
+    if(v>0)s+=`<path d="M${x} ${y(0)} V${yy+4} Q${x} ${yy} ${x+4} ${yy} H${x+w-4} Q${x+w} ${yy} ${x+w} ${yy+4} V${y(0)} Z" fill="${col}"/>${(labels.length<=8||i===labels.length-1||i===vals.indexOf(Math.max(...vals)))?`<text x="${x+w/2}" y="${yy-5}" font-size="11" text-anchor="middle" fill="var(--ink)" font-family="IBM Plex Mono">${unit==='€'?'€'+fmt(v):fmt(v)}</text>`:''}`;
+    s+=`<text x="${x+w/2}" y="${H-9}" font-size="11" text-anchor="middle" fill="var(--muted)" font-family="IBM Plex Sans">${labels[i]}</text>`});
+  el.innerHTML=s+'</svg>';
+}
+
+/* ======================= parking dashboard (all DEMO, future function) ======================= */
+function initPark(){
+  const HRS=[2,2,2,2,3,5,12,24,38,47,52,55,53,50,49,46,40,31,20,12,8,5,3,2], NOW=10;
+  const today=HRS.slice(0,NOW+1), lab=today.map((_,i)=>String(i).padStart(2,'0'));
+  const k=(v,l,extra='')=>`<div class="kpi"><span class="kv mono">${v}</span><span class="l">${l}</span>${extra}<span class="chip d" style="align-self:flex-start">DEMÓ</span></div>`;
+  document.getElementById('parkKpis').innerHTML=
+    k(`${HRS[NOW]} / 92`,'autó a Parkon most, a 92 helyből')+
+    k('48 × €70','bérlői hely havi díjjal, €3 360/hó')+
+    k('41 200 Ft','látogatói bevétel ma 10:40-ig')+
+    k('486 e Ft','látogatói bevétel október (MTD)')+
+    k('6,1 e Ft','átlagos bevétel / látogatói hely / hó');
+  const accent=css('--accent'), faint=css('--line');
+  bars(document.getElementById('parkToday'),lab,today,'db',today.map((_,i)=>i===NOW?accent:css('--zS')));
+  const MON=['nov','dec','jan','feb','márc','ápr','máj','jún','júl','aug','szept','okt'];
+  bars(document.getElementById('parkYear'),MON,[620,580,540,610,650,700,690,720,560,540,640,486],'eFt',MON.map((_,i)=>i===11?accent:css('--zS')));
+}
+
+/* ======================= energy (all DEMO; PV + battery are planned, not built) ======================= */
+function initEnergy(){
+  const MON=['nov','dec','jan','feb','márc','ápr','máj','jún','júl','aug','szept','okt'];
+  const SEAS=[1.1,1.3,1.35,1.3,1.1,0.95,0.9,1.05,1.25,1.2,0.95,0.95];
+  const PVP=[0.035,0.025,0.025,0.045,0.08,0.105,0.125,0.13,0.135,0.125,0.095,0.065]; // nov..okt share of annual yield
+  const TARIFF=72, FEEDIN=20, PV_KWP={A:30,B:380,D:150,K:60}, YIELD=1100, BATT_KWH=500;
+  // buildings: lettable m², let m², kWh/m²/month when let, and the share a vacant m² still burns (frost protection, base ventilation, lighting)
+  const B={A:{m2:3318,let:363,rLet:12,rVac:4.8},B:{m2:9024,let:2780,rLet:4,rVac:1.2},D:{m2:3704,let:535,rLet:9,rVac:3.5},K:{m2:0,let:0,flat:6000}};
+  const gross=b=>SEAS.map(sf=>b.flat?b.flat*sf:(b.let*b.rLet+(b.m2-b.let)*b.rVac)*sf);
+  const vacant=b=>SEAS.map(sf=>b.flat?0:(b.m2-b.let)*b.rVac*sf);
+  const G={};for(const k in B){G[k]={gross:gross(B[k]),vac:vacant(B[k])}}
+  const sum=a=>a.reduce((x,y)=>x+y,0), add=(a,b)=>a.map((v,i)=>v+b[i]);
+  const parkGross=Object.values(G).reduce((a,g)=>add(a,g.gross),new Array(12).fill(0));
+  const pvTot=sum(Object.values(PV_KWP))*YIELD, pvGen=PVP.map(p=>pvTot*p);
+  // park-level dispatch per month: PV direct to load, surplus into the battery (one cycle a day), rest exported
+  const days=[30,31,31,28,31,30,31,30,31,31,30,31];
+  const direct=pvGen.map((g,i)=>Math.min(g*0.72,parkGross[i]*0.58));
+  const batt=pvGen.map((g,i)=>Math.min(g-direct[i],BATT_KWH*0.85*days[i],parkGross[i]-direct[i]));
+  const exp=pvGen.map((g,i)=>g-direct[i]-batt[i]);
+  const grid=parkGross.map((g,i)=>g-direct[i]-batt[i]);
+  let level='P';
+  const share=k=>k==='P'?1:sum(G[k].gross)/sum(parkGross);
+  const scale=(arr,f)=>arr.map(v=>v*f);
+  const fmtM=v=>fmt(v/1000,0), fmtMFt=v=>fmt(v/1e6,1)+' M Ft';
+  const k=(v,l,extra='')=>`<div class="kpi"><span class="kv mono">${v}</span><span class="l">${l}</span>${extra}<span class="chip d" style="align-self:flex-start">DEMÓ</span></div>`;
+  function render(){
+    const f=share(level), gr=level==='P'?parkGross:G[level].gross, vac=level==='P'?Object.values(G).reduce((a,g)=>add(a,g.vac),new Array(12).fill(0)):G[level].vac;
+    const d=scale(direct,f), bt=scale(batt,f), ex=scale(exp,f), gd=gr.map((v,i)=>v-d[i]-bt[i]);
+    const kwp=level==='P'?sum(Object.values(PV_KWP)):PV_KWP[level];
+    const own=sum(d)+sum(bt), net=sum(gd), cost=net*TARIFF-sum(ex)*FEEDIN, vacCost=sum(vac)*TARIFF;
+    document.getElementById('engKpis').innerHTML=
+      k(fmtM(sum(gr))+' MWh','bruttó fogyasztás, 12 hónap')+
+      k(fmtM(sum(scale(pvGen,f)))+' MWh',`saját termelés, ${level==='P'?kwp+' kWp a Parkon':kwp+' kWp a tetőn + Park-megosztás'}`)+
+      k(fmtM(own)+' MWh',`saját felhasználás, ${Math.round(own/sum(gr)*100)}% önellátás`)+
+      k(fmtM(net)+' MWh','nettó hálózati vételezés')+
+      k(fmtMFt(cost),'nettó energiaköltség, 12 hónap')+
+      (sum(vac)?k(fmtMFt(vacCost),'üres terület energiaköltsége, 12 hónap','<span class="l" style="color:var(--est)">kiadatlan m² fűtése, szellőzése, világítása</span>'):'');
+    // now
+    const pvNow=Math.round(sum(Object.values(PV_KWP))*0.43*f), loadNow=Math.round(165*f), chg=level==='P'?60:Math.round(60*f), gridNow=loadNow+chg-pvNow;
+    const soc=64, r=30, c=2*Math.PI*r, off=c*(1-soc/100);
+    document.getElementById('engNow').innerHTML=`
+      <div class="t"><span class="kv mono">${fmt(pvNow)} kW</span><span class="l">napelem teljesítmény</span><span class="d" style="color:var(--pv,#c58316)">${level==='P'?kwp+' kWp, 43%':'Park-megosztás, '+kwp+' kWp a tetőn'}</span></div>
+      <div class="t"><span class="kv mono">${fmt(loadNow)} kW</span><span class="l">fogyasztás most</span><span class="d">${level==='P'?'mind a négy fogyasztó':LNAME[level]}</span></div>
+      <div class="t"><span class="kv mono">${gridNow<0?'−':''}${fmt(Math.abs(gridNow))} kW</span><span class="l">${gridNow<0?'visszatáplálás a hálózatba':'vételezés a hálózatból'}</span><span class="d">ELMŰ 50082 állomás</span></div>
+      <div class="t gauge"><svg viewBox="0 0 72 72" role="img" aria-label="Akkumulátor ${soc}%"><circle cx="36" cy="36" r="${r}" fill="none" stroke="var(--line)" stroke-width="7"/><circle cx="36" cy="36" r="${r}" fill="none" stroke="var(--batt,#3f9b78)" stroke-width="7" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${off}" transform="rotate(-90 36 36)"/><text x="36" y="40" text-anchor="middle" font-size="15" font-weight="700" fill="var(--ink)" font-family="Archivo,sans-serif">${soc}%</text></svg>
+        <div style="display:flex;flex-direction:column;gap:2px"><span class="kv mono">${fmt(BATT_KWH*soc/100)} kWh</span><span class="l">akkumulátor, ${BATT_KWH} kWh</span><span class="d" style="color:var(--batt,#3f9b78)">▲ tölt ${chg} kW</span></div></div>`;
+    // monthly source chart
+    stacked(document.getElementById('engSrc'),MON,[{n:'hálózatból',v:gd,c:'var(--grid)'},{n:'napelem közvetlen',v:d,c:'var(--pv)'},{n:'akkumulátorból',v:bt,c:'var(--batt)'}],{n:'visszatáplált',v:ex,c:'var(--exp)'});
+    document.getElementById('engLegend').innerHTML=[['var(--grid)','hálózatból'],['var(--pv)','napelem közvetlen'],['var(--batt)','akkumulátorból'],['var(--exp)','visszatáplált']].map(x=>`<span><span class="sw" style="background:${x[0]}"></span>${x[1]}</span>`).join('');
+    document.getElementById('engSrcTitle').textContent=`Havi energiaforrás, MWh · ${LNAME[level]}`;
+    // battery day
+    const SOC=[40,38,36,35,34,33,33,35,42,52,64,74,84,91,95,97,96,90,80,68,58,50,45,42];
+    lineChart(document.getElementById('engBatt'),SOC.map((_,i)=>String(i).padStart(2,'0')),SOC,10,'var(--batt)');
+    // table
+    const tc=document.getElementById('engTableCard');
+    if(level==='P'){
+      tc.innerHTML=`<h3>Épületenként, 12 hónap</h3><table><thead><tr><th>Épület</th><th class="num">m²</th><th class="num">bérelt m²</th><th class="num">bruttó MWh</th><th class="num">kWh/m²/év</th><th class="num">napelem kWp</th><th class="num">üres terület költsége</th><th></th></tr></thead><tbody>${
+        Object.keys(B).map(kk=>{const g=sum(G[kk].gross),b=B[kk];return `<tr><td>${LNAME[kk]}</td><td class="num">${b.m2?fmt(b.m2):'–'}</td><td class="num">${b.m2?fmt(b.let):'–'}</td><td class="num">${fmtM(g)}</td><td class="num">${b.m2?fmt(g/b.m2):'–'}</td><td class="num">${PV_KWP[kk]}${kk==='K'?' (carport)':''}</td><td class="num">${b.m2?fmtMFt(sum(G[kk].vac)*TARIFF):'–'}</td><td><button type="button" class="lnk" data-l="${kk}">részletek →</button></td></tr>`}).join('')}</tbody>
+        <tfoot><tr><td>Park</td><td class="num">${fmt(16046)}</td><td class="num">${fmt(3678)}</td><td class="num">${fmtM(sum(parkGross))}</td><td class="num">${fmt(sum(parkGross)/16046)}</td><td class="num">${sum(Object.values(PV_KWP))}</td><td class="num">${fmtMFt(sum(Object.values(G).map(g=>sum(g.vac)))*TARIFF)}</td><td></td></tr></tfoot></table>
+        <p class="note" style="font-size:12px;color:var(--muted);margin-top:8px">Üres terület: a kiadatlan m² fagyvédelme, alapszellőzése és közös világítása, a bérelt fajlagos 30–40%-ával számolva <span class="chip d">DEMÓ</span>. Ez a szám ma sehol nem látszik, mert nincs almérés.</p>`;
+      tc.querySelectorAll('.lnk').forEach(b=>b.onclick=()=>setLevel(b.dataset.l));
+    } else if(level==='K'){
+      tc.innerHTML=`<h3>Közös és külső fogyasztók</h3><table><thead><tr><th>Fogyasztó</th><th class="num">kWh/hó</th><th class="num">Ft/hó</th><th>Mérő</th></tr></thead><tbody>
+        <tr><td>Gépészeti épület, hőszivattyúk</td><td class="num">3 200</td><td class="num">${fmt(3200*TARIFF)}</td><td><span class="st warn">nincs almérő</span></td></tr>
+        <tr><td>Parkoló és kültéri világítás</td><td class="num">1 100</td><td class="num">${fmt(1100*TARIFF)}</td><td><span class="st warn">nincs almérő</span></td></tr>
+        <tr><td>Kapu, kamera, Wi-Fi, szerverszoba</td><td class="num">900</td><td class="num">${fmt(900*TARIFF)}</td><td><span class="st warn">nincs almérő</span></td></tr>
+        <tr><td>Liftek, lépcsőházak (A)</td><td class="num">800</td><td class="num">${fmt(800*TARIFF)}</td><td><span class="st warn">nincs almérő</span></td></tr></tbody></table>
+        <p class="note" style="font-size:12px;color:var(--muted);margin-top:8px">Ami nem jut bérlőre, az a közös költségbe megy. Almérő nélkül ez ma becslés.</p>`;
+    } else {
+      const b=B[level], ten=TEN.map((t,i)=>({...t,i})).filter(t=>t.b===level);
+      const vacKwh=G[level].vac[11], vacM2=b.m2-b.let;
+      tc.innerHTML=`<h3>${LNAME[level]}, bérlőnként, október</h3><table><thead><tr><th>Bérlő</th><th>Egység</th><th class="num">m²</th><th class="num">kWh</th><th class="num">kWh/m²</th><th class="num">Ft</th><th>Mérő</th><th></th></tr></thead><tbody>${
+        ten.map(t=>`<tr><td>${t.n}</td><td>${t.u}</td><td class="num">${fmt(t.m2)}</td><td class="num">${fmt(t.kwh)}</td><td class="num">${fmt(t.kwh/t.m2,1)}</td><td class="num">${fmt(t.kwh*TARIFF*1.05)}</td><td><span class="st let">almérő</span></td><td><button type="button" class="lnk" data-t="${t.i}">bérlő →</button></td></tr>`).join('')}
+        <tr class="loss"><td>Üres terület</td><td>${fmt(vacM2)} m² kiadatlan</td><td class="num">${fmt(vacM2)}</td><td class="num">${fmt(vacKwh)}</td><td class="num">${fmt(vacKwh/vacM2,1)}</td><td class="num">${fmt(vacKwh*TARIFF)}</td><td><span class="st warn">nincs almérő</span></td><td></td></tr></tbody></table>
+        <p class="note" style="font-size:12px;color:var(--muted);margin-top:8px">Az „üres terület” sor a tulajdonos költsége: ezt senkinek nem lehet továbbszámlázni. Bérbeadással bérlői sorrá válik.</p>`;
+      tc.querySelectorAll('.lnk').forEach(bb=>bb.onclick=()=>{showTab('berlok');window.acrT.select(+bb.dataset.t)});
+    }
+  }
+  function setLevel(l){if(!LNAME[l])l='P';level=l;document.querySelectorAll('#engLevel button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.l===l)));render();syncNav()}
+  document.querySelectorAll('#engLevel button').forEach(b=>b.addEventListener('click',()=>setLevel(b.dataset.l)));
+  window.acrE={get level(){return level},setLevel};
+  document.getElementById('p-energia').classList.add('eng-src');
+  render();
+}
+function stacked(el,labels,series,neg){
+  const W=640,H=260,L=46,R=8,T=12,B=28;
+  const tops=labels.map((_,i)=>series.reduce((s,x)=>s+x.v[i],0)), negs=neg?neg.v:labels.map(()=>0);
+  const maxP=Math.max(...tops), maxN=Math.max(...negs), step=Math.pow(10,Math.floor(Math.log10(maxP)));
+  const top=Math.ceil(maxP*1.1/step)*step, bot=neg?Math.ceil(maxN*1.1/step)*step:0;
+  const bw=(W-L-R)/labels.length, y=v=>T+(H-T-B)*(1-(v+bot)/(top+bot)), y0=y(0);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Havi energiaforrás">`;
+  const ticks=[0,top/2,top].concat(bot?[-bot]:[]);
+  for(const v of ticks)s+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" ${v===0?'stroke-width="1.5"':''}/><text x="${L-6}" y="${y(v)+4}" font-size="11" text-anchor="end" fill="var(--muted)" font-family="IBM Plex Mono">${fmt(v/1000)}</text>`;
+  labels.forEach((lb,i)=>{const x=L+i*bw+bw*0.18,w=bw*0.64;let acc=0;
+    series.forEach((sr,j)=>{const v=sr.v[i];if(v<=0)return;const yt=y(acc+v),yb=y(acc)-(j?2:0);s+=`<rect x="${x}" y="${yt}" width="${w}" height="${Math.max(0,yb-yt)}" fill="${sr.c}" ${j===series.length-1?'rx="3"':''}/>`;acc+=v});
+    if(neg&&negs[i]>0)s+=`<rect x="${x}" y="${y0+2}" width="${w}" height="${y(-negs[i])-y0-2}" fill="${neg.c}" rx="3"/>`;
+    s+=`<text x="${x+w/2}" y="${H-9}" font-size="11" text-anchor="middle" fill="var(--muted)" font-family="IBM Plex Sans">${lb}</text>`;
+    if(i===labels.length-1||i===tops.indexOf(maxP))s+=`<text x="${x+w/2}" y="${y(tops[i])-5}" font-size="11" text-anchor="middle" fill="var(--ink)" font-family="IBM Plex Mono">${fmt(tops[i]/1000)}</text>`;
+    s+=`<rect x="${L+i*bw}" y="${T}" width="${bw}" height="${H-T-B}" fill="transparent" data-i="${i}"/>`});
+  el.innerHTML=s+'</svg><div class="tip" hidden></div>';
+  const tip=el.querySelector('.tip'),svg=el.querySelector('svg');
+  svg.querySelectorAll('rect[data-i]').forEach(r=>{r.addEventListener('pointerenter',()=>{const i=+r.dataset.i,b=svg.getBoundingClientRect(),kx=b.width/W;tip.hidden=false;
+    tip.innerHTML=`<b>${labels[i]}</b> · bruttó ${fmt(tops[i]/1000)} MWh<br>`+series.map(sr=>`${sr.n}: ${fmt(sr.v[i]/1000,1)}`).join('<br>')+(neg?`<br>${neg.n}: ${fmt(negs[i]/1000,1)}`:'');
+    tip.style.left=(L+i*bw+bw/2)*kx+'px';tip.style.top=y(tops[i])*kx+'px';tip.style.textAlign='left'});r.addEventListener('pointerleave',()=>tip.hidden=true)});
+}
+function lineChart(el,labels,vals,nowIdx,color){
+  const W=520,H=210,L=40,R=8,T=12,B=28,bw=(W-L-R)/labels.length,x=i=>L+i*bw+bw/2,y=v=>T+(H-T-B)*(1-v/100);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Akkumulátor töltöttsége ma">`;
+  for(const v of [0,25,50,75,100])s+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L-6}" y="${y(v)+4}" font-size="11" text-anchor="end" fill="var(--muted)" font-family="IBM Plex Mono">${v}</text>`;
+  const pts=vals.map((v,i)=>`${x(i)},${y(v)}`).join(' ');
+  s+=`<polygon points="${x(0)},${y(0)} ${pts} ${x(vals.length-1)},${y(0)}" fill="${color}" fill-opacity=".12"/><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2"/>`;
+  s+=`<line x1="${x(nowIdx)}" x2="${x(nowIdx)}" y1="${T}" y2="${y(0)}" stroke="var(--ink)" stroke-dasharray="3 3"/><circle cx="${x(nowIdx)}" cy="${y(vals[nowIdx])}" r="4" fill="${color}" stroke="var(--panel)" stroke-width="2"/><text x="${x(nowIdx)+6}" y="${T+10}" font-size="11" fill="var(--ink)" font-family="IBM Plex Mono">most ${vals[nowIdx]}%</text>`;
+  labels.forEach((lb,i)=>{if(i%3===0)s+=`<text x="${x(i)}" y="${H-9}" font-size="11" text-anchor="middle" fill="var(--muted)" font-family="IBM Plex Sans">${lb}</text>`});
+  el.innerHTML=s+'</svg>';
+}
+
+/* ======================= utilities: meters and flows (DEMO; placement is an assumption until the meter survey) ======================= */
+function initUtil(){
+  const ST={tav:['távleolvasott','let'],kezi:['kézi, havi','warn'],terv:['tervezett','terv'],nincs:['nincs mérő','nincs'],src:['szolgáltató','free']};
+  // x,y in the SVG; p = parent node; st = status; who = who reads it; last = last reading
+  const N=[
+   {id:'ELMŰ',l:'ELMŰ 50082',sub:'transzformátorállomás, szomszéd telek',x:60,y:200,st:'src',med:'E',serves:'a teljes Park',type:'20/0,4 kV állomás, nem a Parké',read:'—',last:'—',note:'Lekötött teljesítmény: a csatlakozási szerződésben, még nem ismert. Szabad kapacitás: csak az ELMŰ tudja.'},
+   {id:'E-FŐ',l:'E-FŐ',sub:'ELMŰ fogyasztásmérő',x:160,y:200,p:'ELMŰ',st:'tav',med:'E',serves:'a teljes Park',type:'szolgáltatói okosmérő',read:'ELMŰ, távleolvasás, 15 perces görbe kérhető',last:'2026-10-01 · 1 247 310 kWh',note:'Ez az egyetlen mérő, aminek az adata ma biztosan eljut egy számláig: az ELMŰ-éig.'},
+   {id:'ELO',l:'Főelosztó',sub:'',x:255,y:200,p:'E-FŐ',st:'src',med:'E',bus:true,serves:'A, B, D, gépészet, külső',type:'kisfeszültségű főelosztó',read:'—',last:'—',note:'A leágazások száma és terhelése a mérőfelmérés tárgya.'},
+   {id:'PV',l:'Napelem inverter',sub:'620 kWp, tervezett',x:120,y:60,p:'ELO',st:'terv',med:'E',serves:'termelés mérése',type:'inverter beépített mérő + hitelesített termelésmérő',read:'távleolvasás, 5 perces',last:'—',note:'Hálózati engedély (HMKE felett: erőművi kategória) és a lekötött teljesítmény tisztázása kell hozzá.'},
+   {id:'BATT',l:'Akkumulátor',sub:'500 kWh, tervezett',x:120,y:115,p:'ELO',st:'terv',med:'E',serves:'töltés / kisütés',type:'BMS + kétirányú mérő',read:'távleolvasás',last:'—',note:'A gépészeti épület mellé tervezve.'},
+   {id:'E-A',l:'E-A',sub:'A épület főelosztó',x:360,y:95,p:'ELO',st:'kezi',med:'E',serves:'A épület, 3 318 m²',type:'almérő, impulzuskimenet nélkül',read:'gondnok, havonta, papírra',last:'2026-10-01 · 318 450 kWh',note:'A szám néha eljut a táblázatig, néha nem.'},
+   {id:'E-A-01',l:'E-A-01',sub:'Északfény, 2. em. déli szárny',x:520,y:70,p:'E-A',st:'kezi',med:'E',serves:'bérlő, 363 m²',type:'almérő',read:'gondnok, havonta',last:'2026-10-01 · 41 210 kWh',note:'Továbbszámlázva mért alapon.'},
+   {id:'E-A-K',l:'E-A-K',sub:'A közös: liftek, lépcsőház, hűtés',x:520,y:120,p:'E-A',st:'terv',med:'E',serves:'A közös terek és az üres szárnyak',type:'almérő, M-Bus',read:'távleolvasás',last:'—',note:'E nélkül az üres terület fogyasztása csak különbségként becsülhető.'},
+   {id:'E-B',l:'E-B',sub:'B épület főelosztó',x:360,y:200,p:'ELO',st:'kezi',med:'E',serves:'B épület, 9 024 m²',type:'almérő',read:'gondnok, havonta',last:'2026-10-01 · 402 118 kWh',note:''},
+   {id:'E-B-01',l:'E-B-01',sub:'Gyorsfutár, raktár',x:520,y:165,p:'E-B',st:'kezi',med:'E',serves:'bérlő, 1 250 m²',type:'almérő',read:'gondnok, havonta',last:'2026-10-01 · 88 940 kWh',note:''},
+   {id:'E-B-02',l:'E-B-02',sub:'Fémmű, műhely 2',x:520,y:195,p:'E-B',st:'nincs',med:'E',serves:'bérlő, 420 m²',type:'—',read:'—',last:'—',note:'Átalány m² alapon számlázva. Egy műhely gépei miatt ez a legnagyobb bizonytalanság a B-ben.'},
+   {id:'E-B-03',l:'E-B-03',sub:'Raktárbox, 1. em. raktár',x:520,y:225,p:'E-B',st:'kezi',med:'E',serves:'bérlő, 800 m²',type:'almérő',read:'gondnok, havonta',last:'2026-10-01 · 12 300 kWh',note:''},
+   {id:'E-B-04',l:'E-B-04',sub:'Kovács Asztalosüzem, műhely 4',x:520,y:255,p:'E-B',st:'nincs',med:'E',serves:'bérlő, 310 m²',type:'—',read:'—',last:'—',note:'Átalány alapon számlázva.'},
+   {id:'E-D',l:'E-D',sub:'D épület főelosztó',x:360,y:320,p:'ELO',st:'kezi',med:'E',serves:'D épület, 3 704 m²',type:'almérő',read:'gondnok, havonta',last:'2026-10-01 · 211 760 kWh',note:''},
+   {id:'E-D-01',l:'E-D-01',sub:'Vonal Tervezőiroda, fszt. 3',x:520,y:290,p:'E-D',st:'kezi',med:'E',serves:'bérlő, 210 m²',type:'almérő',read:'gondnok, havonta',last:'2026-10-01 · 21 880 kWh',note:''},
+   {id:'E-D-02',l:'E-D-02',sub:'Zöldút Egyesület, 1. em. 7',x:520,y:318,p:'E-D',st:'kezi',med:'E',serves:'bérlő, 95 m²',type:'almérő',read:'gondnok, havonta',last:'2026-10-01 · 8 120 kWh',note:''},
+   {id:'E-D-03',l:'E-D-03',sub:'Pixel Labor, 1. em. 2',x:520,y:346,p:'E-D',st:'kezi',med:'E',serves:'bérlő, 160 m²',type:'almérő',read:'gondnok, havonta',last:'2026-10-01 · 17 430 kWh',note:''},
+   {id:'E-D-04',l:'E-D-04',sub:'Biztos Pont, fszt. 1',x:520,y:374,p:'E-D',st:'nincs',med:'E',serves:'bérlő, 70 m²',type:'—',read:'—',last:'—',note:'Átalány alapon számlázva.'},
+   {id:'E-GÉP',l:'E-GÉP',sub:'gépészeti épület, hőszivattyúk',x:360,y:410,p:'ELO',st:'nincs',med:'E',serves:'A épület fűtése-hűtése',type:'—',read:'—',last:'—',note:'A Park egyik legnagyobb fogyasztója, mérő nélkül. Ide kerülne a hőszivattyú-csere után az első almérő.'},
+   {id:'E-KÜL',l:'E-KÜL',sub:'parkoló világítás, kapu, kamera',x:360,y:455,p:'ELO',st:'nincs',med:'E',serves:'külső közös',type:'—',read:'—',last:'—',note:''},
+  ];
+  const W=[
+   {id:'VÍZMŰ',l:'Fővárosi Vízművek',sub:'bekötés',x:60,y:50,st:'src',med:'V',serves:'a teljes Park',type:'—',read:'—',last:'—',note:''},
+   {id:'V-FŐ',l:'V-FŐ',sub:'fővízmérő',x:190,y:50,p:'VÍZMŰ',st:'kezi',med:'V',serves:'a teljes Park',type:'szolgáltatói mérő',read:'Vízművek, negyedévente + önleolvasás',last:'2026-09-30 · 48 212 m³',note:'A vízdíj ma teljes egészében m² alapon oszlik, mérő nélkül.'},
+   {id:'V-A',l:'V-A',sub:'A épület',x:330,y:20,p:'V-FŐ',st:'nincs',med:'V',serves:'A épület',type:'—',read:'—',last:'—',note:'Épületenkénti vízmérő nincs.'},
+   {id:'V-B',l:'V-B',sub:'B épület',x:330,y:50,p:'V-FŐ',st:'nincs',med:'V',serves:'B épület',type:'—',read:'—',last:'—',note:'A raktárbérlő mosóállása miatt itt a legnagyobb a szórás.'},
+   {id:'V-D',l:'V-D',sub:'D épület',x:330,y:80,p:'V-FŐ',st:'nincs',med:'V',serves:'D épület',type:'—',read:'—',last:'—',note:''},
+   {id:'HP',l:'Hőszivattyúk',sub:'gépészeti épület, rossz állapot',x:470,y:50,st:'src',med:'H',serves:'A épület fan-coil körei',type:'levegő-víz hőszivattyúk, csere alatt',read:'—',last:'—',note:'Állapot: Endre szerint rosszak, egy egység beszerzése tárgyalás alatt.'},
+   {id:'H-A',l:'H-A',sub:'hőmennyiségmérő, A épület',x:590,y:25,p:'HP',st:'terv',med:'H',serves:'A épület fűtés-hűtés',type:'ultrahangos hőmennyiségmérő, M-Bus',read:'távleolvasás',last:'—',note:'Ezzel válna szét a fűtés-hűtés költsége a többi áramtól, és lehetne a bérlőkre osztani.'},
+   {id:'H-A-01',l:'H-A-01',sub:'Északfény köre',x:740,y:80,p:'H-A',via:'v',st:'terv',med:'H',serves:'bérlő, 2. em. déli szárny',type:'körönkénti hőmennyiségmérő',read:'távleolvasás',last:'—',note:'Csak akkor éri meg, ha a szárnyak külön körön vannak. Ez a gépészeti felmérés kérdése.'},
+  ];
+  const ALL=[...N,...W]; let sel=null;
+  function draw(el,nodes,vb){
+    const by=Object.fromEntries(nodes.map(n=>[n.id,n]));
+    let s=`<svg viewBox="${vb}" role="img" aria-label="Mérők sémája" font-family="IBM Plex Sans">`;
+    for(const n of nodes){if(!n.p)continue;const p=by[n.p];const dash=n.st==='terv'?'stroke-dasharray="5 4"':'';
+      const mid=(p.bus||n.via==='v')?p.x:(p.x+n.x)/2;
+      s+=`<path d="M${p.x} ${p.y} H${mid} V${n.y} H${n.x}" fill="none" stroke="var(--muted)" stroke-width="1.5" ${dash}/>`}
+    for(const n of nodes){
+      s+=`<g data-m="${n.id}" tabindex="0" role="button" aria-label="${n.l}, ${ST[n.st][0]}">`;
+      if(n.bus)s+=`<rect x="${n.x-6}" y="${n.y-150}" width="12" height="270" rx="3" class="m-src" stroke="var(--muted)"/><text x="${n.x}" y="${n.y-158}" font-size="10" text-anchor="middle" fill="var(--muted)">${n.l}</text>`;
+      else if(n.st==='src')s+=`<rect x="${n.x-44}" y="${n.y-14}" width="88" height="28" rx="4" class="m-src" stroke="var(--muted)"/><text x="${n.x}" y="${n.y+4}" font-size="10" text-anchor="middle" fill="var(--ink)">${n.l}</text>`;
+      else s+=`<circle cx="${n.x}" cy="${n.y}" r="9" class="m-${n.st}" stroke="var(--panel)" stroke-width="2"/><text x="${n.x+14}" y="${n.y-1}" font-size="10.5" font-weight="600" fill="var(--ink)" font-family="IBM Plex Mono">${n.l}</text><text x="${n.x+14}" y="${n.y+10}" font-size="9.5" fill="var(--muted)">${n.sub}</text>`;
+      if(n.st==='src'&&n.sub&&!n.bus)s+=`<text x="${n.x}" y="${n.y+26}" font-size="9" text-anchor="middle" fill="var(--muted)">${n.sub}</text>`;
+      s+='</g>';
+    }
+    el.innerHTML=s+'</svg>';
+    el.querySelectorAll('[data-m]').forEach(g=>{g.addEventListener('click',()=>select(g.dataset.m));g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select(g.dataset.m)}})});
+  }
+  draw(document.getElementById('schemE'),N,'0 0 760 480');
+  draw(document.getElementById('schemW'),W,'0 0 860 110');
+  document.getElementById('kozLegend').innerHTML=`<span><svg width="12" height="12"><circle cx="6" cy="6" r="5" class="m-tav"/></svg> távleolvasott</span><span><svg width="12" height="12"><circle cx="6" cy="6" r="5" class="m-kezi"/></svg> kézi, havi</span><span><svg width="12" height="12"><circle cx="6" cy="6" r="4.5" class="m-terv"/></svg> tervezett</span><span><svg width="12" height="12"><circle cx="6" cy="6" r="4.5" class="m-nincs"/></svg> nincs mérő</span>`;
+  function select(id){
+    sel=ALL.find(n=>n.id===id)?id:null;
+    document.querySelectorAll('.schem [data-m]').forEach(g=>g.classList.toggle('on',g.dataset.m===sel));
+    const d=document.getElementById('kozDetail');
+    if(!sel){d.innerHTML=`<h3>Mérő adatai</h3><p style="color:var(--muted);font-size:13px;margin-top:6px">Kattints egy mérőre a sémán.</p>
+      <dl class="dl" style="margin-top:12px"><dt>Mérők összesen</dt><dd>${ALL.filter(n=>n.st!=='src').length}</dd><dt>Létező, kézi</dt><dd>${ALL.filter(n=>n.st==='kezi').length}</dd><dt>Távleolvasott</dt><dd>${ALL.filter(n=>n.st==='tav').length} (csak az ELMŰ-é)</dd><dt>Hiányzik</dt><dd>${ALL.filter(n=>n.st==='nincs').length}</dd><dt>Tervezett</dt><dd>${ALL.filter(n=>n.st==='terv').length}</dd></dl>
+      <p style="font-size:12.5px;color:var(--muted);margin-top:10px">Minden létező almérő kézi leolvasású. Egyetlen impulzus- vagy M-Bus-kimenet sincs, ezért nincs mit automatikusan a számlába vinni.</p>`;
+    } else {const n=ALL.find(x=>x.id===sel),[sl,sc]=ST[n.st],med={E:'villamos energia',V:'víz',H:'hő'}[n.med];
+      const ten=TEN.find(t=>t.mid===n.id);
+      d.innerHTML=`<h3>${n.l}</h3><p style="color:var(--muted);font-size:13px">${n.sub||med} · <span class="st ${sc}">${sl}</span></p>
+      <dl class="dl"><dt>Közeg</dt><dd>${med}</dd><dt>Mit mér</dt><dd>${n.serves}</dd><dt>Típus</dt><dd>${n.type}</dd><dt>Leolvasás</dt><dd>${n.read}</dd><dt>Utolsó állás</dt><dd>${n.last}</dd></dl>
+      ${n.note?`<p style="font-size:12.5px;margin-top:8px">${n.note}</p>`:''}
+      <div class="seg" style="margin-top:10px">${ten?`<button type="button" id="kzT">Bérlő: ${ten.n} →</button>`:''}${n.id.startsWith('E-A')||n.id==='H-A'?'<button type="button" id="kzA">A épület →</button>':''}${n.id==='ELMŰ'||n.id==='PV'||n.id==='BATT'?'<button type="button" id="kzE">Energia →</button>':''}</div>`;
+      const bt=document.getElementById('kzT');if(bt)bt.onclick=()=>{showTab('berlok');window.acrT.select(TEN.indexOf(ten))};
+      const ba=document.getElementById('kzA');if(ba)ba.onclick=()=>window.acrGo.unit('2','2-D');
+      const be=document.getElementById('kzE');if(be)be.onclick=()=>window.acrGo.energy('P');}
+    syncNav();
+  }
+  window.acrK={get sel(){return sel},select};
+  // flows, October
+  const F=[['A épület','kWh',17613,3150,0,14463],['B épület','kWh',17682,6800,6700,4182],['D épület','kWh',15112,3800,520,10792],['Közös, külső','kWh',5700,0,0,5700],['Park, villamos','kWh',56107,13750,7220,35137],['Park, víz','m³',565,0,278,287]];
+  document.getElementById('kozFlow').innerHTML=`<thead><tr><th>Épület</th><th class="num">Főmérő</th><th class="num">Almérő</th><th class="num">Becslés</th><th class="num">Tulajd.</th><th class="num">Lefed.</th></tr></thead><tbody>${F.map((r,i)=>`<tr${i>=4?' style="font-weight:600"':''}><td>${r[0]} <span class="mono" style="color:var(--muted);font-size:11px">${r[1]}</span></td><td class="num">${fmt(r[2])}</td><td class="num">${fmt(r[3])}</td><td class="num" style="color:var(--est)">${fmt(r[4])}</td><td class="num">${fmt(r[5])}</td><td class="num">${Math.round(r[3]/r[2]*100)}%</td></tr>`).join('')}</tbody>`;
+  document.getElementById('kozTable').innerHTML=`<thead><tr><th>Azonosító</th><th>Mit mér</th><th>Közeg</th><th>Típus</th><th>Leolvasás</th><th>Utolsó állás</th><th>Állapot</th></tr></thead><tbody>${ALL.filter(n=>n.st!=='src').map(n=>`<tr data-m="${n.id}" tabindex="0" style="cursor:pointer"><td class="mono">${n.l}</td><td>${n.sub}</td><td>${{E:'áram',V:'víz',H:'hő'}[n.med]}</td><td>${n.type}</td><td>${n.read}</td><td class="mono">${n.last}</td><td><span class="st ${ST[n.st][1]}">${ST[n.st][0]}</span></td></tr>`).join('')}</tbody>`;
+  document.querySelectorAll('#kozTable tr[data-m]').forEach(tr=>{tr.addEventListener('click',()=>{select(tr.dataset.m);document.getElementById('schemE').scrollIntoView({behavior:'smooth',block:'center'})})});
+  select(null);
+}
+
+/* ======================= P&L (DEMO): tenant -> building -> Park, monthly ======================= */
+function initPL(){
+  const FX=400, TARIFF=72, MARGIN=1.05;
+  // owner's operating cost per m² per month (cleaning, security, maintenance, insurance, tax, management), and the share a vacant m² still costs
+  const B={A:{m2:3318,opex:1400,vacF:0.55,rVac:4.8,rent:9.9,sc:4.4},B:{m2:9024,opex:450,vacF:0.5,rVac:1.2,rent:4.8,sc:1.2},D:{m2:3704,opex:1100,vacF:0.55,rVac:3.5,rent:8.5,sc:4.3}};
+  const COMMON=[['Park-szintű üzemeltetés, ügyvitel',-1200],['Kültéri világítás, kapu, kamera, Wi-Fi',-180],['Gépészeti épület, hőszivattyúk árama',-230],['Bérlői parkolóhelyek, 48 × €70',48*70*FX/1000],['Látogatói parkolás',640]];
+  let level='P';
+  const kft=v=>fmt(v/1000,0)+' e Ft';
+  const tenantPL=t=>{const b=B[t.b];const rent=t.m2*t.r*FX, sc=t.m2*t.sc*FX, rech=t.kwh*TARIFF*MARGIN, opex=-t.m2*b.opex, en=-t.kwh*TARIFF;return {rent,sc,rech,opex,en,res:rent+sc+rech+opex+en}};
+  const vacantPL=k=>{const b=B[k],let_=TEN.filter(t=>t.b===k).reduce((s,t)=>s+t.m2,0),vm2=b.m2-let_;return {m2:vm2,opex:-vm2*b.opex*b.vacF,en:-vm2*b.rVac*0.95*TARIFF,lost:vm2*b.rent*FX}};
+  const bldPL=k=>{const ts=TEN.filter(t=>t.b===k).map(t=>({t,p:tenantPL(t)}));const v=vacantPL(k);const sum=f=>ts.reduce((s,x)=>s+x.p[f],0);
+    return {k,ts,v,rent:sum('rent'),sc:sum('sc'),rech:sum('rech'),opex:sum('opex'),en:sum('en'),res:sum('res')+v.opex+v.en,m2:B[k].m2}};
+  const parkPL=()=>{const bs=['A','B','D'].map(bldPL);const c=COMMON.reduce((s,x)=>s+x[1]*1000,0);const f=n=>bs.reduce((s,b)=>s+b[n],0);return {bs,common:c,rent:f('rent'),sc:f('sc'),rech:f('rech'),opex:f('opex'),en:f('en'),vac:bs.reduce((s,b)=>s+b.v.opex+b.v.en,0),res:f('res')+c,m2:16046}};
+  const row=(l,v,cls='')=>`<tr class="${cls}"><td>${l}</td><td class="${v<0?'neg':v>0?'pos':''}">${v<0?'−':''}${kft(Math.abs(v))}</td></tr>`;
+  function render(){
+    const P=level==='P'?parkPL():bldPL(level), inc=P.rent+P.sc+P.rech, cost=P.opex+P.en+(level==='P'?P.vac+P.common:P.v.opex+P.v.en);
+    const k=(v,l,c='')=>`<div class="kpi"><span class="kv mono${c}">${v}</span><span class="l">${l}</span><span class="chip d" style="align-self:flex-start">DEMÓ</span></div>`;
+    document.getElementById('plKpis').innerHTML=k(kft(inc),'bevétel / hó')+k('−'+kft(Math.abs(cost)),'költség / hó')+k((P.res<0?'−':'')+kft(Math.abs(P.res)),'eredmény / hó'+(P.res<0?', veszteség':''))+k(fmt(P.res/P.m2)+' Ft','eredmény / m² / hó')+k(Math.round(P.res/inc*100)+'%','eredmény a bevétel arányában');
+    document.getElementById('plTitle').textContent=`Eredménykimutatás, ${LNAME[level]}, október`;
+    let t=`<tr class="hdr"><td>Bevétel</td><td></td></tr>`+row('Bérleti díj',P.rent,'sub')+row('Üzemeltetési díj',P.sc,'sub')+row('Közüzem továbbszámlázva',P.rech,'sub')+row('Bevétel összesen',inc)+
+      `<tr class="hdr"><td>Költség</td><td></td></tr>`+row('Üzemeltetés a bérelt m²-re',P.opex,'sub')+row('Közüzem beszerzése a bérlőknek',P.en,'sub')+
+      (level==='P'?row('Üres terület: üzemeltetés + energia',P.vac,'sub')+COMMON.filter(x=>x[1]<0).map(x=>row(x[0],x[1]*1000,'sub')).join(''):row('Üres terület üzemeltetése ('+fmt(P.v.m2)+' m²)',P.v.opex,'sub')+row('Üres terület energiája',P.v.en,'sub'))+
+      (level==='P'?`<tr class="hdr"><td>Egyéb bevétel</td><td></td></tr>`+COMMON.filter(x=>x[1]>0).map(x=>row(x[0],x[1]*1000,'sub')).join(''):'')+
+      `<tr class="total"><td>Eredmény</td><td class="${P.res<0?'neg':'pos'}">${P.res<0?'−':''}${kft(Math.abs(P.res))}</td></tr>`+
+      (level!=='P'?row('Elmaradt bérleti díj az üres területen, irányáron',P.v.lost,'sub'):row('Elmaradt bérleti díj az üres területen, irányáron',P.bs.reduce((s,b)=>s+b.v.lost,0),'sub'));
+    document.getElementById('plTable').innerHTML=t;
+    const r=document.getElementById('plRows');
+    if(level==='P'){
+      r.innerHTML=`<h3>Épületenként</h3><table><thead><tr><th>Épület</th><th class="num">m²</th><th class="num">bérelt</th><th class="num">bevétel</th><th class="num">költség</th><th class="num">eredmény</th><th class="num">Ft/m²</th><th></th></tr></thead><tbody>${P.bs.map(b=>{const i=b.rent+b.sc+b.rech,c=b.opex+b.en+b.v.opex+b.v.en;return `<tr><td>${LNAME[b.k]}</td><td class="num">${fmt(b.m2)}</td><td class="num">${fmt(b.m2-b.v.m2)}</td><td class="num">${kft(i)}</td><td class="num neg">−${kft(-c)}</td><td class="num ${b.res<0?'neg':'pos'}">${b.res<0?'−':''}${kft(Math.abs(b.res))}</td><td class="num">${fmt(b.res/b.m2)}</td><td><button type="button" class="lnk" data-l="${b.k}">részletek →</button></td></tr>`}).join('')}
+        <tr><td>Közös, Park-szint</td><td class="num">–</td><td class="num">–</td><td class="num">${kft(COMMON.filter(x=>x[1]>0).reduce((s,x)=>s+x[1]*1000,0))}</td><td class="num neg">−${kft(-COMMON.filter(x=>x[1]<0).reduce((s,x)=>s+x[1]*1000,0))}</td><td class="num ${P.common<0?'neg':'pos'}">${P.common<0?'−':''}${kft(Math.abs(P.common))}</td><td class="num">–</td><td></td></tr></tbody></table>`;
+      r.querySelectorAll('.lnk').forEach(b=>b.onclick=()=>setLevel(b.dataset.l));
+    } else {
+      r.innerHTML=`<h3>${LNAME[level]}, bérlőnként</h3><table><thead><tr><th>Bérlő</th><th class="num">m²</th><th class="num">bérleti díj</th><th class="num">üzem. díj</th><th class="num">közüzem +/−</th><th class="num">üzemeltetés</th><th class="num">fedezet</th><th class="num">Ft/m²</th><th></th></tr></thead><tbody>${P.ts.map(({t,p},i)=>`<tr><td>${t.n}</td><td class="num">${fmt(t.m2)}</td><td class="num">${kft(p.rent)}</td><td class="num">${kft(p.sc)}</td><td class="num">${kft(p.rech+p.en)}</td><td class="num neg">−${kft(-p.opex)}</td><td class="num ${p.res<0?'neg':'pos'}">${kft(p.res)}</td><td class="num">${fmt(p.res/t.m2)}</td><td><button type="button" class="lnk" data-t="${TEN.indexOf(t)}">bérlő →</button></td></tr>`).join('')}
+        <tr class="loss"><td>Üres terület</td><td class="num">${fmt(P.v.m2)}</td><td class="num">–</td><td class="num">–</td><td class="num neg">−${kft(-P.v.en)}</td><td class="num neg">−${kft(-P.v.opex)}</td><td class="num neg">−${kft(-(P.v.opex+P.v.en))}</td><td class="num">${fmt((P.v.opex+P.v.en)/P.v.m2)}</td><td></td></tr></tbody></table>
+        <p class="note" style="font-size:12px;color:var(--muted);margin-top:8px">Fedezet = bérleti díj + üzemeltetési díj + közüzemi árrés − a bérlő m²-ére jutó üzemeltetési költség. Az üres terület sora a tulajdonosé.</p>`;
+      r.querySelectorAll('.lnk').forEach(b=>b.onclick=()=>{showTab('berlok');window.acrT.select(+b.dataset.t)});
+    }
+    whatIf();
+  }
+  function whatIf(){
+    const rent=+document.getElementById('wiRent').value, occ=+document.getElementById('wiOcc').value/100;
+    document.getElementById('wiRentV').textContent=fmt(rent)+' Ft/m²/hó (≈ €'+fmt(rent/FX,1)+')';
+    document.getElementById('wiOccV').textContent=occ*100+'%';
+    const ks=level==='P'?['A','B','D']:[level];
+    let m2=0,dRent=0,dSc=0,dOpex=0,dEn=0;
+    for(const kk of ks){const b=B[kk],v=vacantPL(kk),nm=v.m2*occ;m2+=nm;dRent+=nm*rent;dSc+=nm*b.sc*FX;dOpex+=-nm*b.opex*(1-b.vacF);dEn+=0}
+    const base=level==='P'?parkPL().res:bldPL(level).res, delta=dRent+dSc+dOpex, after=base+delta;
+    document.getElementById('wiTable').innerHTML=row('Kiadott új terület',m2*1000,'sub').replace(kft(m2*1000),fmt(m2)+' m²')+row('+ bérleti díj',dRent,'sub')+row('+ üzemeltetési díj a bérlőtől',dSc,'sub')+row('− a bérelt m² teljes üzemeltetési költsége',dOpex,'sub')+
+      `<tr><td>Eredmény ma</td><td class="${base<0?'neg':'pos'}">${base<0?'−':''}${kft(Math.abs(base))}</td></tr><tr class="total"><td>Eredmény így</td><td class="${after<0?'neg':'pos'}">${after<0?'−':''}${kft(Math.abs(after))}</td></tr>`;
+  }
+  ['wiRent','wiOcc'].forEach(id=>document.getElementById(id).addEventListener('input',whatIf));
+  function setLevel(l){if(!B[l])l='P';level=l;document.querySelectorAll('#plLevel button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.l===l)));render();syncNav()}
+  document.querySelectorAll('#plLevel button').forEach(b=>b.addEventListener('click',()=>setLevel(b.dataset.l)));
+  window.acrP={get level(){return level},setLevel,park:parkPL,bld:bldPL,FX,TEN_DELAY:{0:0,1:20,2:45,3:0,4:25,5:0,6:10,7:5,8:60}};
+  render();
+}
+
+/* ======================= finance: dashboard P&L, cashflow, FX (DEMO) ======================= */
+function initFin(){
+  const P=window.acrP, TODAY=new Date(2026,9,15);
+  const MONS=['jan','feb','márc','ápr','máj','jún','júl','aug','szept','okt','nov','dec'];
+  const kft=v=>fmt(v/1000,0)+' e Ft', keur=v=>fmt(v/1000,1)+' e €';
+  // --- dashboard P&L ---
+  {const pk=P.park(), inc=pk.rent+pk.sc+pk.rech, cost=inc-pk.res;
+   const k=(v,l)=>`<div class="kpi"><span class="kv mono">${v}</span><span class="l">${l}</span><span class="chip d" style="align-self:flex-start">DEMÓ</span></div>`;
+   document.getElementById('finKpis').innerHTML=k(kft(inc),'bevétel / hó')+k('−'+kft(cost),'költség / hó')+k(kft(pk.res),'eredmény / hó, október')+k(fmt(pk.res/16046)+' Ft','eredmény / m² / hó')+k('23%','kiadottság, 3 678 / 16 046 m²');
+   const SEAS=[1.35,1.3,1.1,0.95,0.9,1.05,1.25,1.2,0.95,0.95,1.1,1.3], energy=4000000;
+   const res=SEAS.map(sf=>pk.res-energy*(sf-SEAS[9])), lab=['jan','feb','márc','ápr','máj','jún','júl','aug','szept','okt','nov','dec'];
+   const el=document.getElementById('finRes'), W=1100,H=230,L=60,R=8,T=16,B=26, top=Math.ceil(Math.max(...res)*1.15/500000)*500000, bot=Math.min(0,Math.floor(Math.min(...res)*1.3/500000)*500000), bw=(W-L-R)/12, y=v=>T+(H-T-B)*(1-(v-bot)/(top-bot));
+   let sv=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Havi eredmény">`;
+   for(const v of [bot,0,top].filter((v,i,a)=>a.indexOf(v)===i))sv+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" ${v===0?'stroke-width="1.5"':''}/><text x="${L-6}" y="${y(v)+4}" font-size="11" text-anchor="end" fill="var(--muted)" font-family="IBM Plex Mono">${fmt(v/1000)}</text>`;
+   res.forEach((v,i)=>{const x=L+i*bw+bw*.18,w=bw*.64;sv+=`<rect x="${x}" y="${Math.min(y(0),y(v))}" width="${w}" height="${Math.abs(y(v)-y(0))}" rx="3" fill="${i===9?'var(--accent)':v<0?'#b03a2e':'var(--ok)'}" ${i===9?'':'fill-opacity=".75"'}/><text x="${x+w/2}" y="${H-9}" font-size="11" text-anchor="middle" fill="var(--muted)" font-family="IBM Plex Sans">${lab[i]}</text>${i===9||v===Math.min(...res)?`<text x="${x+w/2}" y="${v<0?y(v)+12:y(v)-5}" font-size="11" text-anchor="middle" fill="var(--ink)" font-family="IBM Plex Mono">${fmt(v/1000)}</text>`:''}`});
+   el.innerHTML=sv+'</svg>';}
+  document.getElementById('finToPL').onclick=()=>window.acrGo.pl('P');
+  // --- cash events for 12 months ---
+  const ev=[]; const add=(d,cur,amt,l)=>ev.push({d,cur,amt,l});
+  const D=(y,m,d)=>new Date(y,m,d);
+  for(let mi=0;mi<13;mi++){const y=2026+Math.floor((9+mi)/12), m=(9+mi)%12;
+    TEN.forEach((t,i)=>{const dl=P.TEN_DELAY[i];
+      add(D(y,m,8+dl),'EUR',t.m2*(t.r+t.sc),t.n+' bérleti+üzemeltetési díj');
+      add(D(y,m,18+dl),'HUF',t.kwh*72*1.05*(1+(m===0||m===1||m===11?.3:m>=5&&m<=7?.15:0)),t.n+' közüzem');});
+    add(D(y,m,8),'EUR',48*70,'bérlői parkolás');
+    for(let w=0;w<4;w++)add(D(y,m,3+w*7),'HUF',150000,'látogatói parkolás');
+    add(D(y,m,15),'HUF',-4000000*[1.35,1.3,1.1,0.95,0.9,1.05,1.25,1.2,0.95,0.95,1.1,1.3][m],'ELMŰ áram');
+    add(D(y,m,5),'HUF',-3200000,'bérek, üzemeltetés'); add(D(y,m,20),'HUF',-800000,'karbantartás'); add(D(y,m,10),'HUF',-350000,'könyvelés, ügyvitel'); add(D(y,m,15),'HUF',-180000,'kültéri, kapu, Wi-Fi');
+    if([0,3,6,9].includes(m))add(D(y,m,20),'HUF',-900000,'Vízművek, negyedév');
+    if([1,4,7,10].includes(m))add(D(y,m,10),'HUF',-1100000,'biztosítás, negyedév');
+    if(m===2||m===8)add(D(y,m,15),'HUF',-3900000,'építményadó, félév');}
+  // open receivables: expected within 3 weeks if under 60 days late, otherwise excluded
+  TEN.forEach(t=>{if(t.bal&&t.late<60)add(new Date(TODAY.getTime()+21*864e5),'EUR',t.bal,t.n+' nyitott egyenleg')});
+  const excluded=TEN.filter(t=>t.bal&&t.late>=60).reduce((s,t)=>s+t.bal,0);
+  // --- periods ---
+  let per='het';
+  const periods=()=>{const out=[];
+    if(per==='het'){let st=new Date(TODAY);for(let i=0;i<13;i++){const en=i===0?D(2026,9,19):new Date(st.getTime()+7*864e5),last=new Date(en-864e5);out.push({l:`${MONS[st.getMonth()]} ${st.getDate()}–${last.getMonth()!==st.getMonth()?MONS[last.getMonth()]+' ':''}${last.getDate()}`,st:new Date(st),en});st=en}}
+    else if(per==='honap'){for(let i=0;i<12;i++){const st=i===0?new Date(TODAY):D(2026,9+i,1),en=D(2026,10+i,1);out.push({l:`${st.getFullYear()!==2026&&st.getMonth()===0?'2027 ':''}${MONS[st.getMonth()]}`,st,en})}}
+    else{for(let i=0;i<4;i++){const st=i===0?new Date(TODAY):D(2026,9+i*3,1),en=D(2026,12+i*3,1);out.push({l:`${st.getFullYear()} Q${Math.floor(st.getMonth()/3)+1}`,st,en})}}
+    return out};
+  // --- simulate with conversion rule ---
+  function simulate(){
+    const rate=+document.getElementById('fxRate').value, reserve=+document.getElementById('fxRes').value*1000;
+    let eur=38400, huf=10400000; const rows=[], conv=[];
+    for(const p of periods()){const es=ev.filter(e=>e.d>=p.st&&e.d<p.en);
+      const eIn=es.filter(e=>e.cur==='EUR'&&e.amt>0).reduce((s,e)=>s+e.amt,0), eOut=0;
+      const hIn=es.filter(e=>e.cur==='HUF'&&e.amt>0).reduce((s,e)=>s+e.amt,0), hOut=Math.abs(es.filter(e=>e.cur==='HUF'&&e.amt<0).reduce((s,e)=>s+e.amt,0));
+      let hClose=huf+hIn-hOut, cv=0;
+      if(hClose<reserve){cv=Math.ceil((reserve-hClose)/rate/500)*500;cv=Math.min(cv,eur+eIn);hClose+=cv*rate;let bal=huf,dip=null;for(const e of es.filter(e=>e.cur==='HUF').sort((a,b)=>a.d-b.d)){bal+=e.amt;if(bal<reserve){dip=e.d;break}}conv.push({p,cv,huf:cv*rate,when:dip||p.st})}
+      const eClose=eur+eIn-cv;
+      rows.push({p,eOpen:eur,eIn,cv,eClose,hOpen:huf,hIn,hOut,hConv:cv*rate,hClose,ok:hClose>=reserve-1});
+      eur=eClose;huf=hClose}
+    return {rows,conv,rate,reserve};
+  }
+  function lineChart2(el,labels,vals,ref,color,unit){
+    const W=560,H=220,L=56,R=8,T=14,B=30,n=labels.length,bw=(W-L-R)/n,x=i=>L+i*bw+bw/2;
+    const mx=Math.max(...vals,ref||0)*1.08, mn=ref!=null?Math.min(...vals,ref)*0.8:Math.min(0,...vals), y=v=>T+(H-T-B)*(1-(v-mn)/(mx-mn||1));
+    let s=`<svg viewBox="0 0 ${W} ${H}" role="img">`;
+    for(let i=0;i<=4;i++){const v=mn+(mx-mn)*i/4;s+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L-6}" y="${y(v)+4}" font-size="11" text-anchor="end" fill="var(--muted)" font-family="IBM Plex Mono">${fmt(v/unit)}</text>`}
+    if(ref!=null)s+=`<line x1="${L}" x2="${W-R}" y1="${y(ref)}" y2="${y(ref)}" stroke="var(--est)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+    const pts=vals.map((v,i)=>`${x(i)},${y(v)}`).join(' ');
+    s+=`<polygon points="${x(0)},${y(mn)} ${pts} ${x(n-1)},${y(mn)}" fill="${color}" fill-opacity=".1"/><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2"/>`;
+    vals.forEach((v,i)=>{s+=`<circle cx="${x(i)}" cy="${y(v)}" r="3.5" fill="${v<(ref||0)?'#b03a2e':color}" stroke="var(--panel)" stroke-width="1.5"/>`;if(n<=4||i%2===0)s+=`<text x="${x(i)}" y="${H-10}" font-size="10" text-anchor="middle" fill="var(--muted)" font-family="IBM Plex Sans">${labels[i]}</text>`});
+    el.innerHTML=s+'</svg>';
+  }
+  function render(){
+    const {rows,conv,rate,reserve}=simulate();
+    document.getElementById('fxRateV').textContent=fmt(rate,1)+' Ft/€';
+    document.getElementById('fxResV').textContent=kft(reserve);
+    const lbl={het:'13 hét',honap:'12 hónap',negyedev:'4 negyedév'}[per];
+    const k=(v,l,c='')=>`<div class="kpi"><span class="kv mono"${c?` style="color:${c}"`:''}>${v}</span><span class="l">${l}</span><span class="chip d" style="align-self:flex-start">DEMÓ</span></div>`;
+    const first=rows[0], totCv=conv.reduce((s,c)=>s+c.cv,0);
+    document.getElementById('cfKpis').innerHTML=k(kft(10400000),'forintszámla ma')+k(keur(38400),'eurószámla ma')+k('−'+kft(first.hOut),`forint kifizetés, ${rows[0].p.l}`)+k(keur(first.eIn),`euró bevétel, ${rows[0].p.l}`)+k(conv.length?keur(totCv):'0 €',`váltás összesen, ${lbl}`,conv.length?'var(--est)':'var(--ok)');
+    document.getElementById('cfChartT').textContent=`Forintszámla egyenlege, ezer Ft, ${lbl}`;
+    lineChart2(document.getElementById('cfChart'),rows.map(r=>r.p.l),rows.map(r=>r.hClose),reserve,css('--accent'),1000);
+    lineChart2(document.getElementById('cfChartE'),rows.map(r=>r.p.l),rows.map(r=>r.eClose),null,css('--ok'),1000);
+    document.getElementById('cfTableT').textContent=`Időszakonként, ${lbl}`;
+    document.getElementById('cfTable').innerHTML=`<thead><tr><th>Időszak</th><th class="num">€ nyitó</th><th class="num">€ be</th><th class="num">€ váltva</th><th class="num">€ záró</th><th class="num">Ft nyitó</th><th class="num">Ft be</th><th class="num">Ft ki</th><th class="num">Ft váltásból</th><th class="num">Ft záró</th><th>Állapot</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.p.l}</td><td class="num">${fmt(r.eOpen)}</td><td class="num">${fmt(r.eIn)}</td><td class="num${r.cv?' neg':''}">${r.cv?'−'+fmt(r.cv):'–'}</td><td class="num">${fmt(r.eClose)}</td><td class="num">${kft(r.hOpen)}</td><td class="num">${kft(r.hIn)}</td><td class="num neg">${r.hOut?'−'+kft(r.hOut):'–'}</td><td class="num${r.cv?' pos':''}">${r.cv?'+'+kft(r.hConv):'–'}</td><td class="num">${kft(r.hClose)}</td><td>${r.cv?`<span class="st warn">váltás: ${fmt(r.cv)} €</span>`:'<span class="st let">rendben</span>'}</td></tr>`).join('')}</tbody>`;
+    const reco=document.getElementById('fxReco');
+    if(conv.length){const c=conv[0];reco.innerHTML=`<div class="demobanner" style="border-color:var(--est);background:color-mix(in srgb,var(--est) 10%,transparent)"><b>Javaslat:</b> válts <b class="mono">${fmt(c.cv)} €</b>-t (≈ ${kft(c.huf)}) ${c.when<=TODAY?'<b>még ma</b>':`legkésőbb <b>${MONS[c.when.getMonth()]} ${c.when.getDate()}.</b> előtt`}, különben a forintszámla a tartalék alá megy a(z) <b>${c.p.l}</b> időszakban.</div>`}
+    else reco.innerHTML=`<div class="demobanner" style="border-color:var(--ok);background:color-mix(in srgb,var(--ok) 10%,transparent)"><b>Nem kell váltani</b> a következő ${lbl}ben: a forint bevétel és a mai egyenleg fedezi a kifizetéseket a tartalék felett.</div>`;
+    document.getElementById('fxTable').innerHTML=conv.length?conv.map(c=>`<tr><td>${c.p.l}</td><td class="mono">${fmt(c.cv)} € → ${kft(c.huf)}</td></tr>`).join('')+`<tr class="total"><td>Összesen, ${lbl}</td><td class="mono">${fmt(totCv)} €</td></tr>`:`<tr><td colspan="2" style="color:var(--muted)">Nincs váltás a(z) ${lbl} alatt.</td></tr>`;
+    const eurMonthly=TEN.reduce((s,t)=>s+t.m2*(t.r+t.sc),0)+48*70;
+    document.getElementById('fxSens').innerHTML=`<tr><td>Havi euró bevétel</td><td class="mono">${fmt(eurMonthly)} €</td></tr><tr><td>+5% árfolyam (${fmt(rate*1.05,1)})</td><td class="mono pos">+${kft(eurMonthly*rate*0.05)} / hó</td></tr><tr><td>−5% árfolyam (${fmt(rate*0.95,1)})</td><td class="mono neg">−${kft(eurMonthly*rate*0.05)} / hó</td></tr><tr><td>Nem számolt nyitott tételek, 60+ nap</td><td class="mono">${fmt(excluded)} €</td></tr>`;
+  }
+  function setPer(pp){per=['het','honap','negyedev'].includes(pp)?pp:'het';document.querySelectorAll('#finPer button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.p===per)));render();syncNav()}
+  document.querySelectorAll('#finPer button').forEach(b=>b.addEventListener('click',()=>setPer(b.dataset.p)));
+  document.getElementById('fxRes').addEventListener('input',render);
+
+  // --- live EUR/HUF reference rate: a daily scheduled task writes it into the page database (fx/latest); falls back to the demo rate ---
+  const feed={state:'pending',rate:null,date:null};
+  function feedUI(){const f=document.getElementById('fxFeed'),cur=+document.getElementById('fxRate').value;
+    const btn='<button type="button" class="lnk" id="fxReload">Frissítés</button>';
+    if(feed.state==='ok')f.innerHTML=`<span class="chip v">ELLENŐRZÖTT</span><span>${feed.src} referenciaárfolyam (napi): <b class="mono" style="color:var(--ink)">${fmt(feed.rate,2)}</b>, ${feed.date}</span>${btn}`;
+    else if(feed.state==='pending')f.innerHTML='<span>Élő árfolyam lekérése…</span>';
+    else f.innerHTML=`<span class="chip d">DEMÓ</span><span>Nincs elérhető napi árfolyam, demó érték.</span>${btn}`;
+    document.getElementById('fxReload')?.addEventListener('click',loadFx);
+    document.getElementById('fxUse')?.addEventListener('click',()=>{document.getElementById('fxRate').value=feed.rate;render();dispatchEvent(new Event('acr:fx'))})}
+  async function loadFx(){feed.state='pending';feedUI();
+    try{let d=null;const db=window.claude&&window.claude.use?await window.claude.use('db'):null;
+      if(db){const sn=await db.doc('fx/latest').get();if(sn.exists)d=sn.data()}
+      if(!d){const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),6000);const r=await fetch('https://api.frankfurter.dev/v1/latest?base=EUR&symbols=HUF',{signal:ac.signal});clearTimeout(tm);if(!r.ok)throw new Error(r.status);const j=await r.json();d={rate:j.rates&&j.rates.HUF,date:j.date,source:'ECB'}}
+      const v=+d.rate;if(!(v>300&&v<500))throw new Error('range');
+      feed.rate=v;feed.date=d.date;feed.src=d.source||'ECB';feed.state='ok';document.getElementById('fxRate').value=v;
+    }catch(e){feed.state='off'}
+    render();feedUI();dispatchEvent(new Event('acr:fx'))}
+  window.acrF={get per(){return per},setPer,ev,TODAY,BAL:{eur:38400,huf:10400000},reco(){const keep=per;per='het';try{return simulate()}finally{per=keep}}};
+  loadFx();
+  render();
+}
+
+/* ======================= dashboard: one screen, links to the details (DEMO) ======================= */
+function initDash(){
+  const F=window.acrF, P=window.acrP, TODAY=F.TODAY, NOWH=10+40/60, el=id=>document.getElementById(id);
+  const n=v=>Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+  const MONS=['jan','febr','márc','ápr','máj','jún','júl','aug','szept','okt','nov','dec'], DAYS=['vas','hétf','kedd','szer','csüt','pén','szomb'];
+  const rate=+el('fxRate').value, R=F.reco(), c0=R.conv[0];
+  const go=(tab,fn)=>()=>{showTab(tab);if(fn)fn()};
+  // --- KPI strip ---
+  const lateT=TEN.map((t,i)=>({t,i})).filter(o=>o.t.bal>0).sort((a,b)=>b.t.late-a.t.late);
+  const lateSum=lateT.reduce((s,o)=>s+o.t.bal,0), late30=lateT.filter(o=>o.t.late>30);
+  const eurMonthly=TEN.reduce((s,t)=>s+t.m2*(t.r+t.sc),0)+48*70;
+  const soon=c0&&(c0.when-TODAY)/864e5<=7;
+  const pvNow=267, loadNow=165, chg=60, grid=loadNow+chg-pvNow;
+  const k=(id,v,l,x,xc)=>`<button type="button" class="kpi dk" data-k="${id}"><span class="l">${l}</span><span class="kv mono">${v}</span><span class="x ${xc||''}">${x}</span></button>`;
+  el('dKpis').innerHTML=
+    k('cash',n(F.BAL.huf/1000)+' e Ft','forintszámla ma','eurószámla '+n(F.BAL.eur)+' €. '+(soon?`Váltás: ${n(c0.cv)} € ${MONS[c0.when.getMonth()]} ${c0.when.getDate()}-ig`:'Ezen a héten nem kell váltani'),soon?'a':'g')+
+    k('fx',fmt(rate,1)+' Ft/€','EUR/HUF árfolyam',`±5% = ±${n(eurMonthly*rate*0.05/1000)} e Ft havonta`)+
+    k('park','52 / 92','autó a Parkon most','látogatói bevétel ma: 41 200 Ft')+
+    k('eng',pvNow+' kW','napelem most',`fogyasztás ${loadNow} kW, ${grid<0?'export '+(-grid):'import '+grid} kW`)+
+    k('late',n(lateSum)+' €','lejárt tartozás',`${lateT.length} bérlő, ${late30.length} már 30 napon túl`,'r');
+  const K=el('dKpis');
+  K.querySelector('[data-k=cash]').onclick=go('penzugy',()=>window.acrF.setPer('het'));
+  K.querySelector('[data-k=fx]').onclick=go('penzugy',()=>el('fxFeed').scrollIntoView({behavior:'smooth',block:'center'}));
+  K.querySelector('[data-k=park]').onclick=go('park');
+  K.querySelector('[data-k=eng]').onclick=go('energia',()=>window.acrE.setLevel('P'));
+  K.querySelector('[data-k=late]').onclick=go('berlok',()=>window.acrT.select(lateT[0].i));
+  document.querySelectorAll('#p-attekintes .lnk[data-go]').forEach(b=>b.onclick=go(b.dataset.go));
+  // --- next 14 days: what comes in, what goes out ---
+  const end=new Date(TODAY.getTime()+14*864e5);
+  const evs=F.ev.filter(e=>e.d>=TODAY&&e.d<end&&Math.abs(e.amt)>=100000/(e.cur==='EUR'?400:1)).sort((a,b)=>a.d-b.d||Math.abs(b.amt)-Math.abs(a.amt));
+  const sumE=evs.filter(e=>e.cur==='EUR').reduce((s,e)=>s+e.amt,0), sumHi=evs.filter(e=>e.cur==='HUF'&&e.amt>0).reduce((s,e)=>s+e.amt,0), sumHo=-evs.filter(e=>e.cur==='HUF'&&e.amt<0).reduce((s,e)=>s+e.amt,0);
+  const nm=e=>e.l.replace(/ (bérleti|közüzem|nyitott).*$/,'')+(/közüzem/.test(e.l)?' közüzem':/nyitott/.test(e.l)?' nyitott tartozás':/bérleti/.test(e.l)?' bérlet':'');
+  const rowOf=e=>{const eur=e.cur==='EUR',inn=e.amt>0,col=inn?'var(--ok)':'#b03a2e',v=eur?n(Math.abs(e.amt))+' €':n(Math.abs(e.amt)/1000)+' e Ft';
+    return `<div class="wr"><span class="wd">${e.d.getDate()===TODAY.getDate()?'ma':MONS[e.d.getMonth()]+' '+e.d.getDate()+'.'}</span><span class="wl">${nm(e)}</span><b class="mono" style="color:${col}">${inn?'+':'−'}${v}</b></div>`};
+  el('dWeek').innerHTML=evs.slice(0,9).map(rowOf).join('')+
+    `<div class="wf">14 nap: <b class="mono" style="color:var(--ink)">+${n(sumE)} €</b> és <b class="mono" style="color:var(--ink)">+${n(sumHi/1000)} e Ft</b> jön, <b class="mono" style="color:var(--ink)">−${n(sumHo/1000)} e Ft</b> megy. ${c0?`Következő váltás: <b>${n(c0.cv)} €</b>, ${MONS[c0.when.getMonth()]} ${c0.when.getDate()}-ig.`:'Nem kell váltani.'}</div>`;
+  // --- energy today ---
+  const pv=h=>Math.max(0,268*Math.sin(Math.PI*(h-6.4)/11)), load=h=>118+48*Math.exp(-(((h-12)/4.2)**2));
+  const W=520,H=250,L=32,Rr=6,T=8,B=20, X=h=>L+(W-L-Rr)*h/24, Y=v=>T+(H-T-B)*(1-v/300);
+  const path=(f,a,b)=>{let d='';for(let h=a;h<=b+1e-9;h+=0.25)d+=(d?'L':'M')+X(h).toFixed(1)+','+Y(f(h)).toFixed(1);return d};
+  const area=(f,a,b)=>path(f,a,b)+`L${X(b).toFixed(1)},${Y(0)}L${X(a).toFixed(1)},${Y(0)}Z`;
+  let sv=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Napelem termelés és fogyasztás ma, kW">`;
+  for(const v of [0,100,200,300])sv+=`<line x1="${L}" x2="${W-Rr}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${L-5}" y="${Y(v)+4}" font-size="10" text-anchor="end" fill="var(--muted)" font-family="IBM Plex Mono">${v}</text>`;
+  for(let h=0;h<=24;h+=3)sv+=`<text x="${X(h)}" y="${H-5}" font-size="10" text-anchor="middle" fill="var(--muted)" font-family="IBM Plex Mono">${String(h).padStart(2,'0')}</text>`;
+  sv+=`<path d="${area(pv,6.4,17.4)}" fill="var(--pv)" fill-opacity=".14"/><path d="${area(pv,6.4,NOWH)}" fill="var(--pv)" fill-opacity=".35"/><path d="${path(pv,6.4,17.4)}" fill="none" stroke="var(--pv)" stroke-width="1.5" stroke-dasharray="4 3"/><path d="${path(pv,6.4,NOWH)}" fill="none" stroke="var(--pv)" stroke-width="2"/>`;
+  sv+=`<path d="${path(load,0,24)}" fill="none" stroke="var(--grid)" stroke-width="1.5" stroke-dasharray="4 3"/><path d="${path(load,0,NOWH)}" fill="none" stroke="var(--grid)" stroke-width="2"/>`;
+  sv+=`<line x1="${X(NOWH)}" x2="${X(NOWH)}" y1="${T}" y2="${Y(0)}" stroke="var(--ink)" stroke-width="1"/><circle cx="${X(NOWH)}" cy="${Y(pv(NOWH))}" r="3.5" fill="var(--pv)"/><circle cx="${X(NOWH)}" cy="${Y(load(NOWH))}" r="3.5" fill="var(--grid)"/><text x="${X(NOWH)+5}" y="${T+9}" font-size="10" fill="var(--ink)" font-family="IBM Plex Mono">10:40</text>`;
+  sv+=`<text x="${X(14.2)}" y="${Y(pv(14.2))-6}" font-size="10.5" fill="var(--pv)" font-family="IBM Plex Sans">napelem</text><text x="${X(19)}" y="${Y(load(19))-6}" font-size="10.5" fill="var(--grid)" font-family="IBM Plex Sans">fogyasztás</text></svg>`;
+  el('dEng').innerHTML=sv;
+  let pvK=0,gK=0;for(let h=0;h<NOWH;h+=0.1){pvK+=pv(h)*0.1;gK+=Math.max(0,load(h)-pv(h))*0.1}
+  let pvAll=0;for(let h=0;h<24;h+=0.1)pvAll+=pv(h)*0.1;
+  el('dEngStats').innerHTML=`<div><b>${n(pvK)} kWh</b>napelem ma, 10:40-ig</div><div><b>${n(gK)} kWh</b>hálózatból ma eddig, ${n(gK*72/1000)} e Ft</div><div><b style="color:var(--batt)">64% ▲</b>akkumulátor, tölt ${chg} kW</div><div><b>${n(pvAll*0.76)} kWh</b>holnapi napelem-előrejelzés, borús</div>`;
+  // --- needs attention ---
+  const pk=P.park(), vacDay=Math.abs(pk.vac)/30/1000, vacM2=16046-TEN.reduce((s,t)=>s+t.m2,0);
+  const exp=TEN.map((t,i)=>({t,i,d:Math.round((new Date(t.end)-TODAY)/864e5)})).filter(o=>o.d>=0&&o.d<=90).sort((a,b)=>a.d-b.d);
+  const items=[];
+  if(soon)items.push(['a','Válts '+n(c0.cv)+' €-t '+MONS[c0.when.getMonth()]+' '+c0.when.getDate()+'-ig','Különben a forintszámla a tartalék alá megy.',go('penzugy',()=>window.acrF.setPer('het'))]);
+  if(late30.length)items.push(['r',`${late30.length} bérlő 30 napon túl késik, ${n(late30.reduce((s,o)=>s+o.t.bal,0))} €`,late30.slice(0,3).map(o=>o.t.n.replace(/ (Kft|Bt)\.$/,'')+' '+o.t.late+' nap').join(', '),go('berlok',()=>window.acrT.select(late30[0].i))]);
+  if(exp.length)items.push(['a',`${exp.length} szerződés 90 napon belül lejár`,exp.map(o=>o.t.n.replace(/ (Kft|Bt)\.$/,'')+' '+o.d+' nap'+(o.t.late>30?' (és késik)':'')).join(', '),go('berlok',()=>window.acrT.select(exp[0].i))]);
+  items.push(['a','E-FŐ: magas éjszakai alapterhelés','Tegnap 02-04 óra: 41 kW, a heti átlag 26 kW (+58%). Szivárgás vagy bekapcsolva hagyott gép?',()=>window.acrGo.meterOf('E-FŐ')]);
+  items.push(['a',`Üres terület: napi ${n(vacDay)} e Ft`,`${n(vacM2)} m² üres, fűtés, világítás és üzemeltetés fut rajta.`,()=>window.acrGo.pl('P')]);
+  items.push(['i','1 ajánlat: A 2. em. északi szárny','9,2 €/m² a 9,9 helyett. Válasz kell pénteken. Jövőbeli ügynöki adatfolyam.',()=>window.acrGo.unit('2','2-É')]);
+  el('dAttn').innerHTML=items.map((x,i)=>`<li><button type="button" class="${x[0]}" data-i="${i}"><b>${x[1]}</b><span>${x[2]}</span></button></li>`).join('');
+  el('dAttn').querySelectorAll('button').forEach(b=>b.onclick=items[+b.dataset.i][3]);
+}
+/* ======================= tabs ======================= */
+const TABS=['attekintes','park','epulet','berlok','energia','kozmuvek','eredmeny','penzugy'];
+const LNAME={P:'Park',A:'A épület',B:'B épület',D:'D épület',K:'Közös, külső'};
+const BNAME={A:'A épület',B:'B épület',D:'D épület',S:'Gépészeti épület',PVA:'Napelem, A tető',PVB:'Napelem, B tető',PVD:'Napelem, D tető',PVK:'Napelemes carport',BATT:'Akkumulátor'};
+let siteReady=false, tenReady=false, engReady=false, kozReady=false, plReady=false, finReady=false, curTab='attekintes';
+function showTab(t){
+  if(!TABS.includes(t)) t='attekintes';
+  curTab=t;
+  TABS.forEach(k=>{document.getElementById('p-'+k).hidden=k!==t;document.getElementById('t-'+k).setAttribute('aria-selected',String(k===t));document.getElementById('t-'+k).tabIndex=k===t?0:-1});
+  document.body.classList.toggle('dashmode',t==='attekintes');
+  if(t==='attekintes'){if(!plReady){initPL();plReady=true}if(!finReady){initFin();finReady=true}initDash()}
+  if(t==='park'&&!siteReady){initSite();initPark();siteReady=true}
+  if(t==='berlok'&&!tenReady){initTenants();tenReady=true}
+  if(t==='energia'&&!engReady){initEnergy();engReady=true}
+  if(t==='kozmuvek'&&!kozReady){initUtil();kozReady=true}
+  if(t==='eredmeny'&&!plReady){initPL();plReady=true}
+  if(t==='penzugy'){if(!plReady){initPL();plReady=true}if(!finReady){initFin();finReady=true}}
+  dispatchEvent(new Event('resize'));
+  syncNav();
+  window.scrollTo({top:0});
+}
+/* breadcrumb + address bar follow the selection */
+function syncNav(){
+  const A=window.acrA, parts=[['attekintes','Áttekintés']]; let hash='#park';
+  if(curTab==='attekintes'){hash='#attekintes'}
+  else if(curTab==='park'){parts.push(['park','Park']);const p=window.acrS?.picked;if(p){parts.push([null,BNAME[p]]);hash='#park.'+p}}
+  else if(curTab==='epulet'){const f=A.FLOORS.find(x=>x.k===A.cur);parts.push(['epulet','A épület'],[null,f.name],[null,A.selU]);hash=`#epulet.${A.cur}.${A.selU.replace('É','E')}`}
+  else if(curTab==='penzugy'){parts.push(['penzugy','Pénzügy']);const pp=window.acrF?.per||'het';parts.push([null,{het:'heti',honap:'havi',negyedev:'negyedéves'}[pp]]);hash='#penzugy.'+pp}
+  else if(curTab==='eredmeny'){parts.push(['eredmeny','Eredmény']);const l=window.acrP?.level||'P';if(l!=='P')parts.push([null,LNAME[l]]);hash='#eredmeny.'+l}
+  else if(curTab==='kozmuvek'){parts.push(['kozmuvek','Közművek']);const m=window.acrK?.sel;if(m){parts.push([null,m]);hash='#kozmuvek.'+m}else hash='#kozmuvek'}
+  else if(curTab==='energia'){parts.push(['energia','Energia']);const l=window.acrE?.level||'P';if(l!=='P')parts.push([null,LNAME[l]]);hash='#energia.'+l}
+  else{const t=window.acrT;parts.push(['berlok','Bérlők']);if(t){if(t.free){parts.push([null,t.free+' · szabad']);hash='#berlok.u-'+t.free.replace('É','E')}else{parts.push([null,t.T[t.sel].n]);hash='#berlok.'+t.sel}}}
+  document.getElementById('crumb').innerHTML=parts.map((p,i)=>(i?'<span class="sep">›</span>':'')+(i===parts.length-1?`<span class="cur">${p[1]}</span>`:`<button type="button" data-go="${p[0]||''}">${p[1]}</button>`)).join('');
+  document.querySelectorAll('#crumb button').forEach(b=>b.onclick=()=>{if(b.dataset.go)showTab(b.dataset.go)});
+  lastHash=hash.slice(1); try{history.replaceState(null,'',hash)}catch(e){}
+}
+addEventListener('acr:a',()=>{if(curTab==='epulet')syncNav()});
+addEventListener('acr:fx',()=>{if(curTab==='attekintes')initDash()});
+window.acrGo={
+  tenantForUnit(u){showTab('berlok');window.acrT.byUnit(u)},
+  meter(){document.getElementById('hmeter').scrollIntoView({behavior:'smooth',block:'start'})},
+  unit(fl,u){showTab('epulet');window.acrA.setFloor(fl);if(u)window.acrA.selectUnit(u)},
+  building(b){showTab('park');window.acrS?.showCard(b)},
+  energy(l){showTab('energia');window.acrE.setLevel(l==='S'?'K':l)},
+  meterOf(id){showTab('kozmuvek');window.acrK.select(id)},
+  pl(l){showTab('eredmeny');window.acrP.setLevel(l==='S'||l==='K'?'P':l)}
+};
+document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
+document.querySelector('.tabs').addEventListener('keydown',e=>{if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;const i=TABS.findIndex(k=>document.getElementById('t-'+k).getAttribute('aria-selected')==='true');const n=TABS[(i+(e.key==='ArrowRight'?1:TABS.length-1))%TABS.length];showTab(n);document.getElementById('t-'+n).focus()});
+
+/* ======================= site ======================= */
+function initSite(){
+const stage=document.getElementById('siteStage');
+const P=s=>s.trim().split(/\s+/).map(t=>t.split(',').map(Number));
+// local site metres: x east, y north, origin 19.0287 E / 47.4806 N
+const PLOT=[[6.5,101.9],[19.7,99.6],[25.7,80.3],[27.5,69.0],[39.8,21.4],[76.4,-100.1],[44.5,-93.3],[19.1,-84.0],[-25.8,-67.1],[-38.4,-72.4],[-51.9,-73.6],[-60.9,-69.1],[-65.9,-67.3]];
+const B_OUT=[[5.3,102.3],[19.7,99.4],[39.8,20.3],[-12.0,6.2],[-32.4,15.7]], B_YARD=[[5.9,63.9],[13.0,60.3],[19.7,32.4],[1.5,27.4],[-8.6,32.0]];
+const SMALL=P('-12,0 -19,-16 -29,-11 -22,4');
+const RAIL=[P('54,263 -378,-677'),P('50,265 -386,-683')];
+const NB=`4;12;115,-99 91,-91 92,-86 86,-82 84,-77 74,-41 87,-37 91,-50 88,-51 93,-71 99,-73 97,-76 106,-80 105,-81 119,-86
+3;12;134,-94 159,-103 154,-89 164,-86 168,-96 166,-97 166,-106 170,-108 166,-118 130,-104
+2;7;133,-31 145,-26 154,-48 153,-49 162,-77 152,-80 150,-76 149,-77 138,-43 137,-43
+1;;158,84 164,94 164,96 154,101 147,88 154,84 155,86
+2;;146,77 150,62 161,65 159,71 160,74 158,75 157,79
+3;;174,92 173,90 172,91 169,85 170,84 169,82 178,77 184,87
+4;;153,52 172,59 165,67 150,62
+4;;159,33 156,43 170,48 174,38
+4;;164,18 159,33 173,38 178,23
+4;;168,4 164,18 178,23 183,9
+3;;177,-26 168,4 178,7 182,-5 187,-3 188,-7 183,-8 188,-23
+4;;120,159 125,141 132,143 136,148 135,152 137,152 135,161 132,160 131,162
+3;;64,191 56,172 43,178 51,196
+4;;85,169 86,170 83,182 70,178 73,166
+2;;144,131 162,121 169,134 151,144
+2;;65,145 90,153 85,169 63,163 62,157
+3;10;31,120 61,8 69,11 77,-18 93,-13 97,-26 142,-13 96,139 54,127 53,130 48,129 49,125
+;;74,133 73,138 88,142 87,146 93,148 96,139
+;;42,174 63,163 59,156 43,164 40,159 37,161
+2;;137,144 133,136 144,131 151,144 140,149
+6;;79,194 73,215 60,216 51,196 63,191 64,194 66,194 68,191
+;;115,-42 117,-43 125,-41 124,-39 133,-38 131,-30 122,-31 121,-29 112,-32
+;;90,-59 105,-55 105,-57 111,-55 111,-53 117,-51 111,-30 88,-42 91,-50 88,-51
+2;;-32,-85 -36,-95 -40,-93 -41,-97 -37,-98 -38,-100 39,-129 28,-160 -49,-133 -50,-135 -54,-134 -55,-137 -51,-138 -54,-148 22,-176 10,-208 26,-214 61,-119
+1;;-27,-69 -30,-75 24,-95 27,-88
+;;42,-94 54,-98 52,-105 39,-100
+;;-63,-70 -92,-135 -79,-141 -50,-76
+;;27,-88 42,-94 39,-100 24,-95
+;;-92,-157 -89,-149 -72,-155 -75,-164
+3;;26,-214 20,-229 -62,-199 -57,-183
+;;-70,-176 -66,-166 -53,-170 -57,-181
+;;69,-104 76,-105 79,-114 74,-116 67,-113
+;;-53,-170 -42,-173 -43,-176 -39,-177 -42,-187 -57,-182
+;;54,-98 69,-104 67,-110 52,-105
+;;-79,-174 -89,-202 -76,-207 -66,-179
+;;-96,-168 -100,-167 -111,-198 -90,-205 -79,-174
+4;;-126,24 -127,18 -129,18 -130,12 -128,12 -124,6 -124,2 -126,2 -126,-3 -124,-3 -125,-8 -122,-9 -122,-14 -126,-13 -126,-18 -128,-18 -128,-27 -133,-32 -135,-32 -135,-37 -134,-37 -135,-47 -120,-49 -119,-39 -117,-39 -116,-34 -123,-33 -123,-28 -113,-30 -109,5 -118,6 -118,11 -111,10 -110,15 -112,16 -112,23
+2;;-91,51 -94,42 -86,39 -83,49
+6;;-127,74 -128,61 -113,59 -112,73
+;;-129,49 -131,39 -110,36 -108,47
+3;;-127,133 -126,104 -114,105 -115,130 -112,130 -112,134
+4;;-128,175 -128,165 -118,166 -118,169 -103,170 -104,177
+4;;109,-124 98,-127 129,-242 141,-238 136,-221 142,-220 133,-189 127,-190 126,-186 124,-186 120,-171 122,-170 121,-166 127,-164 117,-133 112,-135
+4;;147,-146 146,-143 158,-139 158,-136 122,-123 110,-127 112,-135 117,-133 118,-135
+3;;69,-135 74,-154 78,-153 82,-167 76,-169 83,-192 88,-190 92,-205 88,-206 94,-225 108,-221 83,-131
+1;5;72,-33 78,-32 76,-27 81,-26 80,-21 69,-24`;
+
+/* plan(A) -> site transform: SW corner + X along aU + Y along aV */
+const SW=[-31.85,-54.31], aU=[0.318,0.948], aV=[0.948,-0.318];
+const p2s=(X,Y)=>[SW[0]+aU[0]*X+aV[0]*Y, SW[1]+aU[1]*X+aV[1]*Y];
+
+/* renderer */
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05;
+stage.appendChild(renderer.domElement);
+const lr=new CSS2DRenderer(); lr.domElement.style.cssText='position:absolute;inset:0;pointer-events:none'; stage.appendChild(lr.domElement);
+const scene=new THREE.Scene(); scene.fog=new THREE.Fog(0xe6eef3,320,760);
+const cam=new THREE.PerspectiveCamera(32,1,1,3000);
+const ctl=new OrbitControls(cam,renderer.domElement); ctl.enableDamping=true; ctl.zoomSpeed=0.8; ctl.minDistance=50; ctl.maxDistance=700; ctl.maxPolarAngle=Math.PI*0.47;
+scene.add(new THREE.HemisphereLight(0xdfeaf3,0x7d8570,0.95));
+const sun=new THREE.DirectionalLight(0xfff1df,2.4); sun.position.set(-140,170,150); sun.castShadow=true;
+sun.shadow.mapSize.set(4096,4096); Object.assign(sun.shadow.camera,{left:-200,right:200,top:200,bottom:-200,near:10,far:700}); sun.shadow.bias=-0.0004; sun.shadow.normalBias=0.4;
+sun.target.position.set(10,0,10); scene.add(sun,sun.target);
+
+/* helpers */
+const shape=(r,holes=[])=>{const s=new THREE.Shape(r.map(p=>new THREE.Vector2(p[0],p[1])));holes.forEach(h=>s.holes.push(new THREE.Path(h.map(p=>new THREE.Vector2(p[0],p[1])))));return s};
+const lam=(c,o={})=>new THREE.MeshStandardMaterial({color:c,roughness:0.9,metalness:0,...o});
+let TAG=null; const NBM=[]; const tag=m=>{if(TAG){m.userData.bld=TAG;if(TAG==='nb')NBM.push(m)}return m};
+function ground(r,y,mat){const g=new THREE.ShapeGeometry(shape(r));g.rotateX(-Math.PI/2);g.translate(0,y,0);const m=new THREE.Mesh(g,mat);m.receiveShadow=true;scene.add(m);return m}
+function block(r,{h,base=0,holes=[],mat}){const g=new THREE.ExtrudeGeometry(shape(r,holes),{depth:h,bevelEnabled:false});g.rotateX(-Math.PI/2);g.translate(0,base,0);const m=new THREE.Mesh(g,mat);m.castShadow=true;m.receiveShadow=true;scene.add(tag(m));return m}
+function strip(a,b,off0,off1,y,mat,ext=0){const dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,nx=uy,ny=-ux;
+  const A=[a[0]-ux*ext,a[1]-uy*ext],B=[b[0]+ux*ext,b[1]+uy*ext];
+  return ground([[A[0]+nx*off0,A[1]+ny*off0],[B[0]+nx*off0,B[1]+ny*off0],[B[0]+nx*off1,B[1]+ny*off1],[A[0]+nx*off1,A[1]+ny*off1]],y,mat)}
+function tex(draw,w=128,h=128){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return t}
+// B building: old three-storey, high-ceilinged block, peeling cream render, grey bands and pilasters, barred tall windows (from the Street View photos)
+function bTile(ground){return tex((g,w,h)=>{
+  g.fillStyle='#e9e5d9';g.fillRect(0,0,w,h);
+  for(let i=0;i<26;i++){const grey=Math.random()<.65;g.fillStyle=grey?`rgba(150,146,135,${.25+Math.random()*.3})`:`rgba(176,112,90,${.35+Math.random()*.3})`;g.fillRect(Math.random()*w,Math.random()*h,10+Math.random()*34,8+Math.random()*26)}
+  g.fillStyle='#b8b4a8';g.fillRect(0,0,w*.07,h);g.fillRect(w*.93,0,w*.07,h);          // pilasters
+  g.fillStyle='#a9a69c';g.fillRect(0,h*(ground?.90:.93),w,h*(ground?.10:.07));            // storey band
+  if(ground){ // low arched cellar-type window with grille
+    g.fillStyle='#4a3a2e';g.beginPath();g.moveTo(w*.34,h*.86);g.lineTo(w*.34,h*.68);g.arc(w*.5,h*.68,w*.16,Math.PI,0);g.lineTo(w*.66,h*.86);g.closePath();g.fill();
+    g.strokeStyle='#8a5a3a';g.lineWidth=2;for(let x=.38;x<.66;x+=.06){g.beginPath();g.moveTo(w*x,h*.62);g.lineTo(w*x,h*.86);g.stroke()}
+    g.fillStyle='#c9c4b6';g.fillRect(w*.4,h*.30,w*.2,h*.05)} // vent
+  else{ // tall barred window
+    g.fillStyle='#2f3a42';g.fillRect(w*.29,h*.17,w*.42,h*.55);
+    g.strokeStyle='#cfc9ba';g.lineWidth=4;g.strokeRect(w*.29,h*.17,w*.42,h*.55);g.lineWidth=2;
+    g.beginPath();g.moveTo(w*.5,h*.17);g.lineTo(w*.5,h*.72);g.moveTo(w*.29,h*.36);g.lineTo(w*.71,h*.36);g.moveTo(w*.29,h*.55);g.lineTo(w*.71,h*.55);g.stroke();
+    g.strokeStyle='#1c2227';g.lineWidth=1.5;for(let x=.33;x<.7;x+=.06){g.beginPath();g.moveTo(w*x,h*.17);g.lineTo(w*x,h*.72);g.stroke()}
+    g.fillStyle='#a9a69c';g.fillRect(w*.27,h*.72,w*.46,h*.025)} // sill
+},220,280)}
+const bGround=bTile(true), bUpper=bTile(false);
+const ivy=tex((g,w,h)=>{g.fillStyle='#4f8a2e';g.fillRect(0,0,w,h);for(let i=0;i<900;i++){const l=Math.random();g.fillStyle=`rgba(${40+l*70},${100+l*80},${20+l*30},.55)`;g.beginPath();g.arc(Math.random()*w,Math.random()*h,2+Math.random()*5,0,7);g.fill()}
+  g.fillStyle='rgba(30,50,30,.55)';g.fillRect(w*.38,h*.18,w*.2,h*.3)},128,128);
+const render=tex((g,w,h)=>{g.fillStyle='#e6e1d5';g.fillRect(0,0,w,h);g.fillStyle='#d9d3c5';g.fillRect(0,h*.86,w,h*.14);g.fillStyle='#3d4a54';g.fillRect(w*.32,h*.26,w*.36,h*.48);g.strokeStyle='#f4f1ea';g.lineWidth=6;g.strokeRect(w*.32,h*.26,w*.36,h*.48)});
+const genericF=tex((g,w,h)=>{g.fillStyle='#d4d2ca';g.fillRect(0,0,w,h);g.fillStyle='#55606a';g.fillRect(w*.25,h*.3,w*.5,h*.42)});
+function facade(r,base,h,t,bay,storey,inset=0.05){
+  const s=Math.sign(r.reduce((a,p,i)=>{const q=r[(i+1)%r.length];return a+p[0]*q[1]-q[0]*p[1]},0));
+  for(let i=0;i<r.length;i++){const a=r[i],b=r[(i+1)%r.length],dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy);if(L<2)continue;
+    const nx=s*dy/L,ny=-s*dx/L,tt=(typeof t==='function'?t(i,a,b):t).clone();tt.needsUpdate=true;tt.repeat.set(Math.max(1,Math.round(L/bay)),Math.max(1,Math.round(h/storey)));
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(L,h),lam(0xffffff,{map:tt}));
+    m.position.set((a[0]+b[0])/2+nx*inset,base+h/2,-((a[1]+b[1])/2+ny*inset));m.rotation.y=Math.atan2(nx,-ny);m.receiveShadow=true;scene.add(tag(m))}}
+function hipped(c,{eave,rise,wall,roof,t}){
+  const d=(p,q)=>Math.hypot(q[0]-p[0],q[1]-p[1]); if(d(c[1],c[2])>d(c[0],c[1])) c=[c[1],c[2],c[3],c[0]];
+  const W=d(c[1],c[2]),L=d(c[0],c[1]); const m12=[(c[1][0]+c[2][0])/2,(c[1][1]+c[2][1])/2],m30=[(c[3][0]+c[0][0])/2,(c[3][1]+c[0][1])/2];
+  const ax=[(m12[0]-m30[0])/L,(m12[1]-m30[1])/L],k=Math.min(W/2,L/2); const r1=[m12[0]-ax[0]*k,m12[1]-ax[1]*k],r0=[m30[0]+ax[0]*k,m30[1]+ax[1]*k];
+  // eaves overhang 0.5 m
+  const cc=c.map(p=>{const cx=(m12[0]+m30[0])/2,cy=(m12[1]+m30[1])/2,vx=p[0]-cx,vy=p[1]-cy,l=Math.hypot(vx,vy);return [p[0]+vx/l*0.7,p[1]+vy/l*0.7]});
+  const V=(p,y)=>[p[0],y,-p[1]],tri=[[cc[0],cc[1],r1],[cc[0],r1,r0],[cc[2],cc[3],r0],[cc[2],r0,r1],[cc[1],cc[2],r1],[cc[3],cc[0],r0]];
+  const pos=[];for(const t3 of tri){const q=t3.map(p=>V(p,(p===r0||p===r1)?eave+rise:eave));const ax=q[1][0]-q[0][0],az=q[1][2]-q[0][2],bx=q[2][0]-q[0][0],bz=q[2][2]-q[0][2],ay=q[1][1]-q[0][1],by=q[2][1]-q[0][1];const ny=az*bx-ax*bz;if(ny<0)q.reverse();for(const v of q)pos.push(...v)}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.computeVertexNormals();
+  const rm=new THREE.Mesh(g,roof);rm.castShadow=true;rm.receiveShadow=true;scene.add(tag(rm));
+  block(c,{h:eave,mat:wall}); facade(c,0,eave,t,3.9,4.25);
+}
+
+/* ground layers */
+const M={grass:lam(0x8c9a6c),pave:lam(0xb9b6ad),asph:lam(0x5d6165),grav:lam(0xc4b89c),lawn:lam(0x6f9a4a),ball:lam(0x8b8074),wall:lam(0xd2d0c8),roofFlat:lam(0xb4b4ae),roofA:lam(0xdedcd6),slate:lam(0x5a6168,{roughness:0.8}),line:new THREE.LineBasicMaterial({color:0xf4f4f0})};
+const base=new THREE.Mesh(new THREE.PlaneGeometry(1400,1400),M.grass);base.rotation.x=-Math.PI/2;base.position.y=-0.05;base.receiveShadow=true;scene.add(base);
+ground(PLOT,0.02,M.pave);
+// streets: Daróczi út east of D, Alsóhegy u. west of the wall, south access road
+strip([73,-92],[45,10],3,14,0.03,M.asph,240);
+strip([-65.9,-67.3],[6.5,101.9],-2.5,-10,0.03,M.asph,200);
+strip([76.4,-100.1],[-65.9,-67.3],-2,-9,0.03,M.asph,30);
+// rail ballast + tracks
+strip([54,263],[-378,-677],-3,6,0.04,M.ball,0);
+for(const r of RAIL){for(const o of[-0.75,0.75]){const a=r[0],b=r[1],dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy),nx=dy/L*o,ny=-dx/L*o;
+  const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(a[0]+nx,0.2,-(a[1]+ny)),new THREE.Vector3(b[0]+nx,0.2,-(b[1]+ny))]);scene.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:0x6a6a6a})))}}
+// gravel yard west of A, lawn and parking in front of A
+ground([[-31.8,-54.1],[-15.6,-10.5],[-41.6,-10.5],[-60.2,-54.1]].map(p=>p),0.03,M.grav);
+ground([p2s(1,22.5),p2s(15,22.5),p2s(15,29),p2s(1,29)],0.04,M.lawn);
+ground([p2s(-3,22),p2s(0.5,22),p2s(0.5,38),p2s(-3,38)],0.04,M.lawn);
+// boundary wall along Alsóhegy u.
+{const a=[-65.9,-67.3],b=[6.5,101.9],dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy);const m=new THREE.Mesh(new THREE.BoxGeometry(L,2.6,0.35),M.wall);m.position.set((a[0]+b[0])/2,1.3,-(a[1]+b[1])/2);m.rotation.y=Math.atan2(dy,dx);m.castShadow=true;m.receiveShadow=true;scene.add(m)}
+
+/* ---------- A building (plan coordinates, then placed) ---------- */
+const AG=new THREE.Group(); AG.rotation.y=Math.atan2(0.948,0.318); AG.position.set(SW[0],0,-SW[1]); scene.add(AG);
+const F_OUT=[[0,0],[45.6,0],[45.6,16.9],[32.6,16.9],[32.6,19.2],[16.9,19.2],[16.9,21],[0,21]];
+const L3=[[0,0],[45.6,0],[45.6,15],[27.4,15],[27.4,13.6],[15.6,13.6],[15.6,19.3],[0,19.3]];
+const L4=[[10.1,1.7],[32.2,1.7],[32.2,13.4],[10.1,13.4]], L4S=[[8.6,0.4],[33.7,0.4],[33.7,14.9],[8.6,14.9]];
+function aPrism(r,b,h,mat){const g=new THREE.ExtrudeGeometry(shape(r),{depth:h,bevelEnabled:false});g.rotateX(Math.PI/2);g.translate(0,b+h,0);const m=new THREE.Mesh(g,mat);m.castShadow=true;m.receiveShadow=true;AG.add(m);return m}
+const AM={wall:lam(0xeceeed),slab:lam(0xc9ccca),glass:lam(0x3a4f62,{roughness:0.25,metalness:0.3}),curtain:lam(0x6d93ae,{roughness:0.2,metalness:0.3,transparent:true,opacity:.9}),blue:lam(0x6f9fc6),olive:lam(0xa9a76a)};
+const near=(a,b)=>Math.abs(a-b)<0.05;
+function aFacade(r,b,h,top){
+  const s=Math.sign(r.reduce((a,p,i)=>{const q=r[(i+1)%r.length];return a+p[0]*q[1]-q[0]*p[1]},0));
+  for(let i=0;i<r.length;i++){const a=r[i],c=r[(i+1)%r.length],dx=c[0]-a[0],dy=c[1]-a[1],L=Math.hypot(dx,dy);if(L<1)continue;
+    const nx=s*dy/L,ny=-s*dx/L,mx=(a[0]+c[0])/2+nx*0.06,my=(a[1]+c[1])/2+ny*0.06,ang=-Math.atan2(dy,dx);
+    const add=(w,hh,y,mat,off=0)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,hh,0.12),mat);m.position.set(mx+dx/L*off,y,my+dy/L*off);m.rotation.y=ang;m.castShadow=true;AG.add(m)};
+    let kind='band'; if(!top){ if(near(a[1],16.9)&&near(c[1],16.9)&&Math.min(a[0],c[0])>=32.5)kind='blue'; else if(near(a[0],45.6)&&near(c[0],45.6))kind='olive'; else if(near(a[1],19.2)&&near(c[1],19.2))kind='curtain'; }
+    if(kind==='band')add(L-0.8,1.55,b+1.73,AM.glass);
+    else if(kind==='curtain')add(L-0.2,h-0.25,b+h/2,AM.curtain);
+    else{add(L-0.1,h-0.05,b+h/2,kind==='blue'?AM.blue:AM.olive);const n=Math.max(2,Math.round(L/4.3));for(let j=0;j<n;j++){const off=-L/2+(j+0.5)*L/n;const m=new THREE.Mesh(new THREE.BoxGeometry(1.5,1.6,0.14),AM.glass);m.position.set(mx+nx*0.03+dx/L*off,b+1.75,my+ny*0.03+dy/L*off);m.rotation.y=ang;AG.add(m)}}
+  }}
+const FH=3.83;
+for(let i=0;i<3;i++){aPrism(F_OUT,i*FH,FH-0.3,AM.wall);aPrism(F_OUT,i*FH+FH-0.3,0.3,AM.slab);aFacade(F_OUT,i*FH,FH)}
+aPrism(L3,3*FH,FH-0.3,AM.wall);aPrism(L3,3*FH+FH-0.3,0.3,AM.slab);aFacade(L3,3*FH,FH);
+aPrism(F_OUT,4*FH,0.35,AM.slab);
+aPrism(L4,4*FH+0.35,2.7,AM.wall);aFacade(L4,4*FH+0.35,3.0,true);aPrism(L4S,4*FH+3.05,0.35,AM.slab);
+// gravel terraces on the 3rd-floor roof
+const tm=lam(0xa9977a);[[[2.7,1.2],[10.1,1.2],[10.1,17.1],[2.7,17.1]],[[32.2,1.2],[38.1,1.2],[38.1,13.4],[32.2,13.4]]].forEach(r=>aPrism(r,4*FH+0.35,0.05,tm));
+
+/* ---------- B, D, small building ---------- */
+TAG='B';const bWall=lam(0x93452f);
+const BS=4.3, bPlinth=lam(0xa9a69c);
+block(B_OUT,{h:3*BS,holes:[B_YARD],mat:lam(0xe9e5d9)});
+// outer wall: ground storey + two upper storeys; the northern apex end, at the Daróczi út / Alsóhegy u. corner, is covered in ivy. Roof about level with the D ridge (≈13 m)
+facade(B_OUT,0,BS,(i)=>i===0?ivy:bGround,4.2,BS);
+facade(B_OUT,BS,2*BS,(i)=>i===0?ivy:bUpper,4.2,BS);
+facade(B_YARD,0,BS,bGround,4.2,BS,-0.05); facade(B_YARD,BS,2*BS,bUpper,4.2,BS,-0.05);
+// flat, patched bitumen roof with a low parapet band
+block(B_OUT,{h:0.5,base:3*BS,holes:[B_YARD],mat:lam(0x7a7569)});
+TAG='D';const dWall=lam(0xe6e1d5);
+[[[73,-92],[45,10],[32,6.4],[60,-95.6]],[[7,-1],[45,10],[48.8,-3],[10.8,-14]],[[26,-77],[60,-89],[64.5,-76.3],[30.5,-64.3]]].forEach(c=>hipped(c,{eave:8.5,rise:4.5,wall:dWall,roof:M.slate,t:render}));
+hipped([[39,-20],[32,-21],[34,-30],[41,-28]],{eave:11.5,rise:3.5,wall:dWall,roof:M.slate,t:render});
+hipped([[47,-49],[40,-50],[42,-59],[49,-57]],{eave:8.5,rise:3.5,wall:dWall,roof:M.slate,t:render});
+TAG='S';block(SMALL,{h:4,mat:lam(0x9aa09c)});
+// roof plant on the small building
+{const c=SMALL.reduce((s,p)=>[s[0]+p[0]/4,s[1]+p[1]/4],[0,0]);for(let i=0;i<6;i++){const m=new THREE.Mesh(new THREE.BoxGeometry(2.2,1.1,1.2),lam(0xb8bdbf));m.position.set(c[0]-4+(i%3)*3.2,4.55,-(c[1]-2+Math.floor(i/3)*3.4));m.castShadow=true;scene.add(tag(m))}}
+
+/* ---------- neighbours ---------- */
+TAG='nb';
+for(const line of NB.split('\n')){const [lv,ht,g]=line.split(';');const r=P(g);const h=ht?+ht:lv?+lv*3.2:6;
+  block(r,{h,mat:lam(0xd4d2ca)});facade(r,0,h,genericF,3.5,3.2);block(r,{h:0.3,base:h,mat:M.roofFlat})}
+TAG=null;
+AG.traverse(o=>{if(o.isMesh)o.userData.bld='A'});
+
+
+const INFO={
+ A:{t:'A épület',d:'Irodaház, pince + földszint + 4 emelet. 3 318 m² bérbeadható, ebből 2 955 m² szabad (89%).',c:'v',go:true},
+ B:{t:'B épület',d:'Háromszintes (földszint + 2 emelet) régi épület belső udvarral, kb. 4,3 m-es szintmagasságokkal, vakolt homlokzattal és lapostetővel. Raktárak és műhelyek, köztük egy kiszállító raktárbérlő. Hosszú távon szálláshely és iroda.',c:'e',n:'A három szint a fotókról olvasható le. A szintmagasság (≈4,3 m, összesen ≈13 m, kb. a D épület gerincének magassága) becslés. Részletes modell az alaprajzok után.'},
+ D:{t:'D épület',d:'Kétszintes, magastetős épület a Daróczi út mentén. Citireal szerint 3 704 m² bérbeadható.',c:'e',n:'A körvonal két forrása 415 m²-rel eltér. Részletes modell az alaprajzok után.'},
+ S:{t:'Gépészeti épület',d:'Egyszintes, a tetőn hűtő- vagy hőszivattyú-egységek. A telekhez tartozik.',c:'e',n:'Funkciója tisztázandó, lehet az A épület gépészete.'},
+ PVB:{t:'Napelem a B épület tetején',pv:380,panels:884,d:'Lapostető, déli tájolás, 15° döntés, sorok között 3,4 m. A Park legnagyobb napelemes felülete.',n:'Tervezett. Statika és tetőszigetelés állapota ellenőrzendő.'},
+ PVD:{t:'Napelem a D épület nyugati tetősíkján',pv:150,panels:349,d:'Az utcai szárny nyugat-délnyugati tetősíkja, 31° hajlás, a tetőhéjjal párhuzamosan.',n:'Tervezett. Palafedésen a rögzítés külön kérdés; a keleti sík az utcára néz, azt nem terveztük.'},
+ PVA:{t:'Napelem az A penthouse tetején',pv:30,panels:70,d:'A penthouse lapos teteje. A teraszok szabadon maradnak.',n:'Tervezett. A penthouse bérlőjének kilátását nem érinti.'},
+ PVK:{t:'Napelemes carport az A előtt',pv:60,panels:136,d:'Két sor, 2 × 14 beálló felett, 6° döntés. EV-töltő helyek a carport alatt.',n:'Tervezett. A kapu- és beléptetőrendszerrel együtt érdemes tervezni.'},
+ BATT:{t:'Akkumulátor',batt:true,d:'500 kWh, 250 kW, konténeres, a gépészeti épület mellett. Éjjel kisüt a bázisterhelésre, délelőtt a napelemről tölt.',n:'Tervezett. Mérete a D és B tetők déli többletére méretezve.'}};
+/* ---------- planned PV, carports, battery (DEMO) ---------- */
+const PVG=new THREE.Group(); scene.add(PVG);
+const AGpv=new THREE.Group(); AG.add(AGpv);
+const pvTex=tex((g,w,h)=>{g.fillStyle='#17304f';g.fillRect(0,0,w,h);g.strokeStyle='#8fa6c4';g.lineWidth=2;for(let i=0;i<=6;i++){g.beginPath();g.moveTo(i*w/6,0);g.lineTo(i*w/6,h);g.stroke()}for(let j=0;j<=10;j++){g.beginPath();g.moveTo(0,j*h/10);g.lineTo(w,j*h/10);g.stroke()}},96,160);
+const pvMat=new THREE.MeshStandardMaterial({map:pvTex,color:0xcfdcef,roughness:0.25,metalness:0.55});
+const panelGeo=new THREE.BoxGeometry(2.0,0.06,1.1);
+const inside=(pt,poly)=>{let c=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const [xi,yi]=poly[i],[xj,yj]=poly[j];if((yi>pt[1])!==(yj>pt[1])&&pt[0]<(xj-xi)*(pt[1]-yi)/(yj-yi)+xi)c=!c}return c};
+const grow=(poly,d)=>{const c=poly.reduce((s,p)=>[s[0]+p[0]/poly.length,s[1]+p[1]/poly.length],[0,0]);return poly.map(p=>{const vx=p[0]-c[0],vy=p[1]-c[1],L=Math.hypot(vx,vy);return [p[0]+vx/L*d,p[1]+vy/L*d]})};
+function field(parent,mats,key){const m=new THREE.InstancedMesh(panelGeo,pvMat,mats.length);mats.forEach((mx,i)=>m.setMatrixAt(i,mx));m.instanceMatrix.needsUpdate=true;m.castShadow=true;m.receiveShadow=true;m.userData.bld=key;parent.add(m);return m}
+const M4=()=>new THREE.Matrix4(), Q=new THREE.Quaternion(), E=new THREE.Euler();
+// B flat roof: south-facing rows, 15°
+{const mats=[];const inner=grow(B_OUT,-2.2),yard=grow(B_YARD,1.6);const xs=B_OUT.map(p=>p[0]),ys=B_OUT.map(p=>p[1]);
+ for(let y=Math.min(...ys)+2;y<Math.max(...ys);y+=3.4)for(let x=Math.min(...xs)+2;x<Math.max(...xs);x+=2.15){if(!inside([x,y],inner)||inside([x,y],yard))continue;
+  mats.push(M4().compose(new THREE.Vector3(x,3*4.3+0.6+0.5,-y),Q.setFromEuler(E.set(15*Math.PI/180,0,0)),new THREE.Vector3(1,1,1)))}
+ field(PVG,mats,'PVB'); INFO.PVB.panels=mats.length;}
+// D street range, west slope: panels flush with the roof
+{const u3=new THREE.Vector3(-0.2647,0,-0.9643).normalize(), h3=new THREE.Vector3(0.963,0,-0.267).normalize();
+ const v3=h3.clone().multiplyScalar(7.45).add(new THREE.Vector3(0,4.5,0)).normalize(); const n3=new THREE.Vector3().crossVectors(u3,v3); if(n3.y<0)n3.negate();
+ const z3=new THREE.Vector3().crossVectors(u3,n3); const q=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(u3,n3,z3));
+ const o=new THREE.Vector3(45.33,8.5,44.79); const mats=[];
+ for(let a=-50;a<=50;a+=2.1)for(let b=1.0;b<=7.0;b+=1.2){const pos=o.clone().add(u3.clone().multiplyScalar(a)).add(v3.clone().multiplyScalar(b)).add(n3.clone().multiplyScalar(0.1));mats.push(M4().compose(pos,q,new THREE.Vector3(1,1,1)))}
+ field(PVG,mats,'PVD'); INFO.PVD.panels=mats.length;}
+// A penthouse roof (plan coords inside AG): east-west rows, 10°
+{const mats=[];const top=4*FH+3.05+0.35+0.5;
+ for(let X=11.5;X<=31;X+=2.15)for(let Y=2.6;Y<=12.6;Y+=2.5)mats.push(M4().compose(new THREE.Vector3(X,top,Y),Q.setFromEuler(E.set(0,0,10*Math.PI/180)),new THREE.Vector3(1,1,1)));
+ field(AGpv,mats,'PVA'); INFO.PVA.panels=mats.length;}
+// carports over the two parking rows in front of A (plan coords inside AG)
+{const steel=lam(0x5d6468,{metalness:0.5,roughness:0.5});
+ for(const Yc of [33,38.5]){const g=new THREE.Group();g.position.set(18.75,3.15,Yc);g.rotation.x=-6*Math.PI/180;AGpv.add(g); // mono-pitch across the 4.9 m width, never along the 37.5 m length
+  const roof=new THREE.Mesh(new THREE.BoxGeometry(37.5,0.12,4.9),steel);roof.castShadow=true;roof.receiveShadow=true;roof.userData.bld='PVK';g.add(roof);
+  const mats=[];for(let X=-17.6;X<=17.6;X+=2.15)for(let z=-1.8;z<=1.8;z+=1.2)mats.push(M4().compose(new THREE.Vector3(X,0.12,z),new THREE.Quaternion(),new THREE.Vector3(1,1,1)));
+  field(g,mats,'PVK'); INFO.PVK.panels=(INFO.PVK.panels||0)+mats.length-136;
+  for(let X=1;X<=36;X+=7)for(const z of [-2.45,2.45]){const eh=3.15+z*Math.sin(6*Math.PI/180)-0.06,post=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.12,eh,8),steel);post.position.set(X,eh/2,Yc+z);post.castShadow=true;post.userData.bld='PVK';AGpv.add(post)}}
+ INFO.PVK.panels=136;}
+// battery container on the free ground north of A, west of the plant building (was inside A's footprint)
+{const bm=new THREE.Mesh(new THREE.BoxGeometry(6,2.9,2.5),lam(0xe8e6df,{roughness:0.6}));bm.position.set(-32,1.45,0);bm.rotation.y=Math.atan2(6.7,-19.9);bm.castShadow=true;bm.receiveShadow=true;bm.userData.bld='BATT';PVG.add(bm);
+ const stripe=new THREE.Mesh(new THREE.BoxGeometry(6.02,0.5,2.52),lam(0x3f9b78));stripe.position.copy(bm.position);stripe.position.y=2.4;stripe.rotation.copy(bm.rotation);stripe.userData.bld='BATT';PVG.add(stripe);
+ const e=document.createElement('div');e.className='sitelbl small';e.textContent='Akkumulátor 500 kWh · tervezett';const o=new CSS2DObject(e);o.position.set(-32,4.2,0);PVG.add(o);}
+/* ---------- trees ---------- */
+let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+const trunkG=new THREE.CylinderGeometry(0.18,0.25,3,6),crownG=new THREE.IcosahedronGeometry(1,1);
+const trunkM=lam(0x5b4a3a),crownMs=[lam(0x4f6d38),lam(0x5d7a3f),lam(0x46653a)];
+function tree(x,y,s=1){const t=new THREE.Mesh(trunkG,trunkM);t.position.set(x,1.5*s,-y);t.scale.setScalar(s);t.castShadow=true;scene.add(t);
+  const c=new THREE.Mesh(crownG,crownMs[Math.floor(rnd()*3)]);c.position.set(x,(3.2+1.8)*s,-y);c.scale.set(2.6*s*(0.85+rnd()*.3),2.9*s*(0.85+rnd()*.3),2.6*s*(0.85+rnd()*.3));c.castShadow=true;c.receiveShadow=true;scene.add(c)}
+function rowTrees(a,b,off,n,s=1,jit=2){const dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy),nx=dy/L,ny=-dx/L;for(let i=0;i<n;i++){const t=(i+rnd()*.6)/n;tree(a[0]+dx*t+nx*(off+rnd()*jit),a[1]+dy*t+ny*(off+rnd()*jit),s*(0.8+rnd()*.5))}}
+rowTrees([-110,-140],[0,160],4,26,1.25,6);          // rail embankment
+rowTrees([-90,-120],[-20,140],-4,18,1.1,4);
+rowTrees([80,-110],[40,30],16,9,1.1,2);             // Daróczi út
+[[4,25],[9,27],[13,24.5],[-1.5,30],[-1.5,35]].forEach(([X,Y])=>{const p=p2s(X,Y);tree(p[0],p[1],0.9+rnd()*.3)});
+[[-48,-30],[-52,-50],[-40,-5]].forEach(([x,y])=>tree(x,y,1.1));
+
+/* ---------- cars ---------- */
+const carBody=new THREE.BoxGeometry(4.4,0.9,1.8),carTop=new THREE.BoxGeometry(2.4,0.7,1.6);
+const carCols=[0xd9dadc,0x9ea3a8,0x2c3136,0x8a2b2b,0x3a5577,0xf2f2f2,0x6b6f72];
+function car(x,y,ang){const g=new THREE.Group();const c=lam(carCols[Math.floor(rnd()*carCols.length)],{roughness:0.4,metalness:0.4});
+  const b=new THREE.Mesh(carBody,c);b.position.y=0.75;const t=new THREE.Mesh(carTop,lam(0x2a3036,{roughness:0.3}));t.position.set(-0.2,1.5,0);b.castShadow=t.castShadow=true;g.add(b,t);g.position.set(x,0,-y);g.rotation.y=ang;scene.add(g)}
+const angA=Math.atan2(0.948,0.318);
+for(let i=0;i<14;i++){if(rnd()<0.25)continue;const p=p2s(1.5+i*2.6,33);car(p[0],p[1],angA+Math.PI/2)}
+for(let i=0;i<14;i++){if(rnd()<0.4)continue;const p=p2s(1.5+i*2.6,38.5);car(p[0],p[1],angA+Math.PI/2)}
+{const a=[53,-72],b=[36,-7],dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy),nx=-dy/L,ny=dx/L;for(let i=0;i<20;i++){if(rnd()<0.3)continue;const t=i/20;car(a[0]+dx*t+nx*7,a[1]+dy*t+ny*7,Math.atan2(dy,dx)+Math.PI/2)}}
+for(let i=0;i<6;i++){car(-50+i*1.2,-45+i*6,Math.atan2(0.919,0.393)+Math.PI/2)}
+// cars parked along Daróczi út
+{const a=[73,-92],d=[-0.265,0.964],n=[0.964,0.265];for(let i=0;i<24;i++){if(rnd()<0.35)continue;const t=-30+i*6;car(a[0]+d[0]*t+n[0]*4.5,a[1]+d[1]*t+n[1]*4.5,Math.atan2(d[1],d[0]))}}
+
+/* labels */
+const lbl=(t,x,y,h)=>{const e=document.createElement('div');e.className='sitelbl';e.textContent=t;const o=new CSS2DObject(e);o.position.set(x,h,-y);scene.add(o)};
+{const c=p2s(22.8,10);lbl('A épület',c[0],c[1],24)} lbl('B épület',5,55,20); lbl('D épület',55,-40,16); lbl('gépészet',-20,-6,8); lbl('Alsóhegy u.',-52,40,3); lbl('Daróczi út',82,-60,3);
+
+/* building picking */
+const card=document.getElementById('bldCard'), ray=new THREE.Raycaster(), ptr=new THREE.Vector2();
+let hov=null, picked=null;
+function bldAt(e){const r=renderer.domElement.getBoundingClientRect();ptr.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(ptr,cam);
+  for(const h of ray.intersectObjects(scene.children,true)){if(!h.object.visible)continue;const b=h.object.userData.bld;if(b==='nb')return null;if(b)return b;if(h.object.isMesh&&h.object!==base)return null}return null}
+function glow(b,on){scene.traverse(o=>{if(o.isMesh&&o.userData.bld===b&&o.material.emissive)o.material.emissive.setHex(on?0x2a2a2a:0x000000)})}
+function setHover(b){if(b===hov)return;if(hov&&hov!==picked)glow(hov,false);hov=b;if(b)glow(b,true);renderer.domElement.style.cursor=b?'pointer':''}
+function showCard(b){if(picked&&picked!==b)glow(picked,false);picked=b;if(!b){card.hidden=true;syncNav();return}glow(b,true);const i=INFO[b]; if(!i){card.hidden=true;return}
+  const kwh=i.pv?`<dl class="dl" style="font-size:12.5px;margin-top:4px"><dt>Teljesítmény</dt><dd>${i.pv} kWp · ${i.panels} panel</dd><dt>Ma eddig</dt><dd>${fmt(Math.round(i.pv*2.1))} kWh</dd><dt>Október (MTD)</dt><dd>${fmt(Math.round(i.pv*71.5*0.5))} kWh</dd><dt>Éves várható</dt><dd>${fmt(Math.round(i.pv*1.1))} MWh</dd><dt>Önfogyasztás</dt><dd>≈ 67%</dd></dl>`:i.batt?`<dl class="dl" style="font-size:12.5px;margin-top:4px"><dt>Töltöttség most</dt><dd>64% · 320 kWh</dd><dt>Most</dt><dd>▲ tölt 60 kW</dd><dt>Ma</dt><dd>kisütve 410 kWh éjjel, töltés 10:00-tól</dd><dt>Ciklus</dt><dd>1 / nap, ~330 / év</dd></dl>`:'';
+  card.innerHTML=`<button type="button" class="x" aria-label="Bezárás">×</button><h3>${i.t}${i.pv||i.batt?' <span class="chip d">TERVEZETT</span>':''}</h3><p>${i.d}</p>${kwh}${i.n?`<p class="n">${i.n}</p>`:''}<div class="seg">${i.go?'<button type="button" class="go">A épület szintenként →</button>':''}<button type="button" class="go2">Energia →</button><button type="button" class="go3">Eredmény →</button></div>`;
+  card.hidden=false;card.querySelector('.x').onclick=()=>showCard(null);const g=card.querySelector('.go');if(g)g.onclick=()=>showTab('epulet');card.querySelector('.go2').onclick=()=>window.acrGo.energy(b);card.querySelector('.go3').onclick=()=>window.acrGo.pl(b);syncNav()}
+window.acrS={showCard,get picked(){return picked},scene,THREE};
+document.getElementById('pvT').addEventListener('change',e=>{PVG.visible=e.target.checked;AGpv.visible=e.target.checked;if(!e.target.checked&&picked&&picked.startsWith('PV')||!e.target.checked&&picked==='BATT')showCard(null)});
+let dn=null;
+renderer.domElement.addEventListener('pointermove',e=>{if(e.buttons)return;setHover(bldAt(e))});
+renderer.domElement.addEventListener('pointerleave',()=>setHover(null));
+renderer.domElement.addEventListener('pointerdown',e=>dn=[e.clientX,e.clientY]);
+renderer.domElement.addEventListener('pointerup',e=>{if(!dn||Math.hypot(e.clientX-dn[0],e.clientY-dn[1])>5)return;const b=bldAt(e);if(b==='A'&&picked==='A'){showTab('epulet');return}showCard(b)});
+document.getElementById('nbT').addEventListener('change',e=>{NBM.forEach(m=>m.visible=e.target.checked)});
+NBM.forEach(m=>m.visible=document.getElementById('nbT').checked);
+
+/* camera + views */
+const target=new THREE.Vector3(10,4,10);
+const VIEWS={se:[125,85,150],nw:[-160,100,-140],top:[5,380,9]};
+function view(n){cam.position.set(...VIEWS[n]);ctl.target.copy(target);ctl.update()}
+stage.querySelectorAll('[data-v]').forEach(b=>b.addEventListener('click',()=>view(b.dataset.v)));
+const dolly=k=>{const v=cam.position.clone().sub(ctl.target);v.setLength(Math.min(700,Math.max(60,v.length()*k)));cam.position.copy(ctl.target).add(v)};
+document.getElementById('sIn').addEventListener('click',()=>dolly(0.8));document.getElementById('sOut').addEventListener('click',()=>dolly(1.25));
+let curView='se';stage.querySelectorAll('[data-v]').forEach(b=>b.addEventListener('click',()=>curView=b.dataset.v));document.getElementById('sReset').addEventListener('click',()=>{view(curView);if(picked)showCard(null)});
+function resize(){const w=stage.clientWidth,h=stage.clientHeight;if(!w)return;renderer.setSize(w,h);lr.setSize(w,h);cam.aspect=w/h;cam.updateProjectionMatrix()}
+addEventListener('resize',resize); resize(); view('se');
+(function loop(){ctl.update();if(stage.clientWidth){renderer.render(scene,cam);lr.render(scene,cam)}requestAnimationFrame(loop)})();
+}
+
+/* ======================= tenants (all DEMO) ======================= */
+const TEN=[
+ {n:'Északfény Szoftver Kft.',mid:'E-A-01',b:'A',u:'A 2. em. déli szárny',fl:'2',uid:'2-D',m2:363,r:9.9,sc:4.4,end:'2027-06-30',bal:0,late:0,pay:'oooooooooooo',kwh:3150,real:'Valós: ez a szárny bérelt. A név és a számok demó.'},
+ {n:'Gyorsfutár Logisztika Kft.',mid:'E-B-01',b:'B',u:'B fszt. raktár',m2:1250,r:5.2,sc:1.2,end:'2028-03-31',bal:6500,late:34,pay:'ooolooooollx',kwh:5900,real:'Valós: van kiszállító raktárbérlő a B épületben. A név és a számok demó.'},
+ {n:'Fémmű Bt.',mid:'E-B-02',b:'B',u:'B fszt. műhely 2',m2:420,r:4.8,sc:1.2,end:'2026-12-31',bal:2016,late:72,pay:'olooolloollx',kwh:4100},
+ {n:'Raktárbox Kft.',mid:'E-B-03',b:'B',u:'B 1. em. raktár',m2:800,r:4.0,sc:1.0,end:'2029-09-30',bal:0,late:0,pay:'oooooooooooo',kwh:900},
+ {n:'Kovács Asztalosüzem',mid:'E-B-04',b:'B',u:'B fszt. műhely 4',m2:310,r:4.6,sc:1.2,end:'2027-02-28',bal:1426,late:41,pay:'oooloooolllx',kwh:2600},
+ {n:'Vonal Tervezőiroda Kft.',mid:'E-D-01',b:'D',u:'D fszt. 3',m2:210,r:8.5,sc:4.3,end:'2027-09-30',bal:0,late:0,pay:'oooooooooooo',kwh:1700},
+ {n:'Zöldút Egyesület',mid:'E-D-02',b:'D',u:'D 1. em. 7',m2:95,r:8.0,sc:4.3,end:'2026-11-30',bal:760,late:12,pay:'ooooooooooox',kwh:650},
+ {n:'Pixel Labor Kft.',mid:'E-D-03',b:'D',u:'D 1. em. 2',m2:160,r:8.5,sc:4.3,end:'2028-01-31',bal:0,late:0,pay:'oooooooooloo',kwh:1450},
+ {n:'Biztos Pont Biztonsági Kft.',mid:'E-D-04',b:'D',u:'D fszt. 1',m2:70,r:8.0,sc:4.3,end:'2027-04-30',bal:4200,late:118,pay:'oollllxxxxxx',kwh:520}];
+
+function initTenants(){
+const TODAY=new Date('2026-10-15');
+// days late 0 = paid; pay: 12 months nov..okt, o=on time, l=late, x=open
+const T=TEN;
+const MON=['nov','dec','jan','feb','márc','ápr','máj','jún','júl','aug','szept','okt'];
+let filt='all', sel=0, freeUnit=null;
+const days=d=>Math.round((new Date(d)-TODAY)/864e5);
+const state=t=>t.late>60?['late','késés 60+ nap']:t.late>0?['warn',`késés ${t.late} nap`]:days(t.end)<=90?['warn','lejár 90 napon belül']:['let','rendben'];
+const dHU=s=>{const d=new Date(s);return `${d.getFullYear()}. ${String(d.getMonth()+1).padStart(2,'0')}. ${String(d.getDate()).padStart(2,'0')}.`};
+function kpis(rows){
+  const m2=rows.reduce((s,t)=>s+t.m2,0),rent=rows.reduce((s,t)=>s+t.m2*t.r,0),bal=rows.reduce((s,t)=>s+t.bal,0),exp=rows.filter(t=>days(t.end)<=180).length;
+  const k=(v,l)=>`<div class="kpi"><span class="kv mono">${v}</span><span class="l">${l}</span><span class="chip d" style="align-self:flex-start">DEMÓ</span></div>`;
+  document.getElementById('tenKpis').innerHTML=k(rows.length,'bérlő')+k(fmt(m2)+' m²','bérelt terület')+k('€'+fmt(rent),'havi bérleti díj')+k('€'+fmt(bal),'nyitott kintlevőség')+k(exp,'szerződés lejár 6 hónapon belül');
+}
+function table(){
+  const rows=T.map((t,i)=>({...t,i})).filter(t=>filt==='all'||t.b===filt);
+  if(!rows.find(t=>t.i===sel)) sel=rows[0]?.i??0;
+  kpis(rows);
+  document.querySelector('#tenTable tbody').innerHTML=rows.map(t=>{const [c,l]=state(t);return `<tr data-i="${t.i}" tabindex="0" class="${!freeUnit&&t.i===sel?'sel':''}"><td>${t.n}</td><td>${t.u}</td><td class="num">${fmt(t.m2)}</td><td class="num">€${fmt(t.m2*t.r)}</td><td class="num">${t.bal?'€'+fmt(t.bal):'–'}</td><td class="mono">${dHU(t.end)}</td><td><span class="st ${c}">${l}</span></td></tr>`}).join('');
+  document.querySelectorAll('#tenTable tbody tr').forEach(tr=>{const go=()=>{sel=+tr.dataset.i;freeUnit=null;table();syncNav()};tr.addEventListener('click',go);tr.addEventListener('keydown',e=>{if(e.key==='Enter')go()})});
+  detail(); charts(rows);
+}
+function detail(){
+  if(freeUnit){const A=window.acrA,u=A.unitsFor(A.cur).find(x=>x.id===freeUnit),f=A.FLOORS.find(x=>x.k===A.cur);
+    document.getElementById('tenDetail').innerHTML=`<h3>Szabad egység: ${freeUnit}</h3><p style="color:var(--muted);font-size:13px">A épület, ${f.name.toLowerCase()} · <span class="st free">szabad</span></p>
+    <dl class="dl"><dt>Terület</dt><dd>≈${fmt(u?u.net:0)} m² <span class="chip e">BECSLÉS</span></dd><dt>Irányár</dt><dd>€${fmt(u?u.rent:0,1)}/m²/hó · €${fmt(u?u.net*u.rent:0)}/hó</dd><dt>Üzemeltetési díj</dt><dd>€4,4/m²/hó</dd><dt>Hirdetve</dt><dd>iroda.hu, Robertson <span class="chip d">DEMÓ</span></dd><dt>Utolsó megtekintés</dt><dd>nincs adat <span class="chip d">DEMÓ</span></dd></dl>
+    <p style="font-size:12.5px;color:var(--muted);margin-top:8px">Egy bérbeadás után ide kerülne a bérlő, és a sor megjelenne a nyilvántartásban.</p>
+    <div class="seg" style="margin-top:10px"><button type="button" id="tnBack">← Vissza az alaprajzra</button></div>`;
+    document.getElementById('tnBack').onclick=()=>window.acrGo.unit(A.cur,freeUnit);return}
+  const t=T[sel],[c,l]=state(t),huf=Math.round(t.kwh*72*1.05);
+  document.getElementById('tenDetail').innerHTML=`<h3>${t.n}</h3><p style="color:var(--muted);font-size:13px">${t.u} · <span class="st ${c}">${l}</span></p>
+  ${t.real?`<p style="font-size:12.5px;margin-top:6px"><span class="chip v">VALÓS</span> ${t.real}</p>`:''}
+  <dl class="dl">
+   <dt>Terület</dt><dd>${fmt(t.m2)} m²</dd>
+   <dt>Bérleti díj</dt><dd>€${fmt(t.r,1)}/m²/hó · €${fmt(t.m2*t.r)}/hó</dd>
+   <dt>Üzemeltetési díj</dt><dd>€${fmt(t.sc,1)}/m²/hó · €${fmt(t.m2*t.sc)}/hó</dd>
+   <dt>Kaució</dt><dd>3 havi, €${fmt(t.m2*(t.r+t.sc)*3)}</dd>
+   <dt>Szerződés vége</dt><dd>${dHU(t.end)} (${days(t.end)} nap)</dd>
+   <dt>Nyitott egyenleg</dt><dd>${t.bal?'€'+fmt(t.bal)+`, ${t.late} napja lejárt`:'nincs'}</dd>
+   <dt>Áram, október</dt><dd>${fmt(t.kwh)} kWh → ${fmt(huf)} Ft továbbszámlázva</dd>
+  </dl>
+  <p class="eyebrow" style="margin-top:12px">Fizetések, elmúlt 12 hónap</p>
+  <div class="pay">${[...t.pay].map((p,i)=>`<span class="${p==='o'?'ok':p==='l'?'lt':'op'}" title="${MON[i]}: ${p==='o'?'időben':p==='l'?'késve':'nyitott'}">${p==='o'?'✓':p==='l'?'!':'×'}</span>`).join('')}</div>
+  <p style="font-size:11.5px;color:var(--muted);margin-top:4px">✓ időben · ! késve · × nyitott. Bérleti díj euróban, közüzem forintban.</p>
+  <div class="demobanner" style="margin-top:10px;font-size:12.5px">Egyenleg-értesítő levél generálható innen a Nagy Machinátor exportjából <span class="chip d">DEMÓ</span></div>
+  <div class="seg" style="margin-top:10px" id="tenNav">${t.uid?'<button type="button" data-go="unit">Mutasd az alaprajzon →</button>':'<button type="button" data-go="bld">Mutasd a Parkon →</button>'}<button type="button" data-go="meter">Mérő és számla →</button><button type="button" data-go="energy">Energia →</button><button type="button" data-go="pl">Eredmény →</button></div>`;
+  document.querySelectorAll('#tenNav button').forEach(b=>b.onclick=()=>{if(b.dataset.go==='unit')window.acrGo.unit(t.fl,t.uid);else if(b.dataset.go==='bld')window.acrGo.building(t.b);else if(b.dataset.go==='energy')window.acrGo.energy(t.b);else if(b.dataset.go==='pl')window.acrGo.pl(t.b);else if(t.mid){window.acrGo.meterOf(t.mid)}else{window.acrGo.unit(t.fl||'1',t.uid);setTimeout(()=>window.acrGo.meter(),50)}});
+}
+function charts(rows){
+  const buck=[0,0,0,0];rows.forEach(t=>{if(!t.bal)return;buck[t.late<=30?0:t.late<=60?1:t.late<=90?2:3]+=t.bal});
+  bars(document.getElementById('ageChart'),['0–30','31–60','61–90','90+'],buck,'€',css('--accent'));
+  const q=['26 Q4','27 Q1','27 Q2','27 Q3','27 Q4','28 Q1','28 Q2+'],qv=new Array(7).fill(0);
+  rows.forEach(t=>{const d=new Date(t.end);const idx=(d.getFullYear()-2026)*4+Math.floor(d.getMonth()/3)-3;qv[Math.max(0,Math.min(6,idx))]+=t.m2});
+  bars(document.getElementById('expChart'),q,qv,'m²',css('--accent'));
+}
+document.querySelectorAll('#tenFilter button').forEach(b=>b.addEventListener('click',()=>{filt=b.dataset.b;document.querySelectorAll('#tenFilter button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));table()}));
+window.acrT={T,get sel(){return sel},get free(){return freeUnit},
+  select(i){if(T[i]){sel=i;freeUnit=null;filt='all';document.querySelectorAll('#tenFilter button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.b==='all')));table();syncNav()}},
+  byUnit(u){const i=T.findIndex(t=>t.uid===u);if(i>=0){sel=i;freeUnit=null}else freeUnit=u;filt='all';document.querySelectorAll('#tenFilter button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.b==='all')));table();syncNav()}};
+table();
+}
+
+/* deep link: #park, #park.B, #epulet.2.2-D, #berlok.3, #berlok.u-1-D1 (dots, because the host passes only plain anchors) */
+let lastHash='';
+function applyHash(){
+ const raw=(location.hash||'#attekintes').slice(1); if(raw===lastHash) return; lastHash=raw;
+ const h=raw.split('.').map(x=>x.replace(/-E(?=\d|$)/,'-É'));
+ showTab(h[0]);
+ if(h[0]==='epulet'&&h[1]){window.acrA.setFloor(h[1]);if(h[2])window.acrA.selectUnit(h[2])}
+ if(h[0]==='park'&&h[1])window.acrS?.showCard(h[1]);
+ if(h[0]==='berlok'&&h[1]){h[1].startsWith('u-')?window.acrT.byUnit(h[1].slice(2)):window.acrT.select(+h[1])}
+ if(h[0]==='energia'&&h[1])window.acrE.setLevel(h[1]);
+ if(h[0]==='kozmuvek'&&h[1])window.acrK.select(h[1]);
+ if(h[0]==='eredmeny'&&h[1])window.acrP.setLevel(h[1]);
+ if(h[0]==='penzugy'&&h[1])window.acrF.setPer(h[1]);
+}
+applyHash();
+addEventListener('hashchange',applyHash);
+</script>
+
+</body>
+</html>
