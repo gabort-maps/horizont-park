@@ -210,6 +210,7 @@ body.dashmode .dstamp{display:block}
 @media (max-width:1000px){.dkpis{grid-template-columns:repeat(2,1fr)}.dgrid{grid-template-columns:1fr}}
 @media (max-width:860px){.planrow,.meter{grid-template-columns:1fr}.floorcard{display:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+body.fit3d .head .lede,body.fit3d .titleblock{display:none}
 </style>
 </head>
 <body>
@@ -1745,5 +1746,27 @@ applyHash();
 addEventListener('hashchange',applyHash);
 </script>
 
+<script>
+/* Fit each visible 3D stage to the viewport so the main image needs no scrolling */
+(function(){
+  let busy=false;
+  function fit(){
+    const any=[...document.querySelectorAll('.stage')].some(st=>st.offsetParent||st.closest('.tabpanel:not([hidden])'));
+    document.body.classList.toggle('fit3d',any);
+    document.querySelectorAll('.stage').forEach(st=>{
+      if(!st.offsetParent) return;
+      const top=st.getBoundingClientRect().top+scrollY;
+      st.style.height=Math.max(300, Math.round(innerHeight-top-16))+'px';
+    });
+  }
+  function refit(){ if(busy) return; fit(); busy=true; dispatchEvent(new Event('resize')); busy=false; }
+  addEventListener('resize',()=>{ if(!busy) refit(); });
+  const mo=new MutationObserver(()=>requestAnimationFrame(refit));
+  document.querySelectorAll('.tabpanel').forEach(p=>mo.observe(p,{attributes:true,attributeFilter:['hidden']}));
+  if(document.fonts) document.fonts.ready.then(refit);
+  addEventListener('load',refit);
+  refit();
+})();
+</script>
 </body>
 </html>
